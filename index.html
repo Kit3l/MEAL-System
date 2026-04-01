@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEAL Pro — Monitoring, Evaluation, Accountability & Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:        #080F1C;
+  --navy-mid:    #0E1A2E;
+  --navy-light:  #152338;
+  --navy-card:   #0F1D30;
+  --teal:        #00B8A5;
+  --teal-light:  #00D4BE;
+  --teal-dim:    rgba(0,184,165,0.1);
+  --teal-glow:   rgba(0,184,165,0.25);
+  --amber:       #F4A623;
+  --amber-dim:   rgba(244,166,35,0.12);
+  --red:         #E05252;
+  --red-dim:     rgba(224,82,82,0.1);
+  --green:       #2DBD7E;
+  --green-dim:   rgba(45,189,126,0.1);
+  --blue:        #4A90D9;
+  --blue-dim:    rgba(74,144,217,0.1);
+  --purple:      #8B5CF6;
+  --purple-dim:  rgba(139,92,246,0.1);
+  --text-primary:   #EDF2F8;
+  --text-secondary: #7A95B4;
+  --text-muted:     #3D5872;
+  --border:         rgba(255,255,255,0.055);
+  --border-strong:  rgba(255,255,255,0.1);
+  --surface:        rgba(255,255,255,0.032);
+  --surface-hover:  rgba(255,255,255,0.06);
+  --radius:      10px;
+  --radius-lg:   16px;
+  --radius-xl:   22px;
+  --sidebar-w:   252px;
+  --font-head:   'Syne', sans-serif;
+  --font-body:   'DM Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--navy);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── LAYOUT ─────────────────────────────────────────────────────────── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--navy-mid);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  padding: 26px 22px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--teal) 0%, #006E9F 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.brand-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  margin-top: 3px;
+}
+
+.sidebar-nav { padding: 18px 10px; flex: 1; }
+
+.nav-section {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  padding: 0 12px;
+  margin: 18px 0 6px;
+}
+
+.nav-section:first-child { margin-top: 0; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.14s;
+  margin-bottom: 1px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.nav-item:hover { background: var(--surface-hover); color: var(--text-primary); }
+.nav-item.active { background: var(--teal-dim); color: var(--teal-light); font-weight: 500; }
+.nav-item .ni { width: 15px; height: 15px; opacity: 0.65; flex-shrink: 0; }
+.nav-item.active .ni { opacity: 1; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--red-dim);
+  color: var(--red);
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+}
+
+.sidebar-footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.sync-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── MAIN ─────────────────────────────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+.topbar {
+  background: var(--navy-mid);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+
+.topbar-breadcrumb {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.topbar-breadcrumb .current { color: var(--text-secondary); }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.api-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 4px 10px;
+}
+
+.api-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.api-dot.connected { background: var(--green); animation: pulse 2s infinite; }
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--teal-dim);
+  border: 1.5px solid var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal-light);
+  font-family: var(--font-head);
+}
+
+/* ── CONTENT ─────────────────────────────────────────────────────────── */
+.content { flex: 1; overflow-y: auto; padding: 36px 32px 72px; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── PAGE HEADER ─────────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.page-title {
+  font-family: var(--font-head);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle { font-size: 13.5px; color: var(--text-secondary); margin-top: 4px; font-weight: 300; }
+
+/* ── STAT CARDS ──────────────────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover { border-color: var(--border-strong); }
+
+.stat-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-family: var(--font-head);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.stat-delta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stat-delta.up { color: var(--green); }
+.stat-delta.down { color: var(--red); }
+
+.stat-accent {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+/* ── CARDS ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: 18px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--teal-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-icon svg { width: 17px; height: 17px; color: var(--teal-light); }
+.card-title { font-size: 14.5px; font-weight: 600; color: var(--text-primary); }
+.card-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+/* ── STEPS ───────────────────────────────────────────────────────────── */
+.steps-bar {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 5px;
+  margin-bottom: 28px;
+  overflow-x: auto;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.step:hover { background: var(--surface-hover); }
+.step.active { background: var(--teal-dim); }
+.step.done { opacity: 0.55; }
+
+.step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  border: 1px solid var(--border-strong);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.step.active .step-num { background: var(--teal); border-color: var(--teal); color: #fff; }
+.step.done .step-num { background: var(--green); border-color: var(--green); color: #fff; }
+.step-label { font-size: 12.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; }
+.step.active .step-label { color: var(--teal-light); font-weight: 500; }
+.step-div { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+/* ── FORM ────────────────────────────────────────────────────────────── */
+.form-grid { display: grid; gap: 18px; }
+.form-grid-2 { grid-template-columns: 1fr 1fr; }
+.form-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field.span-2 { grid-column: span 2; }
+.field.span-3 { grid-column: span 3; }
+
+.field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.req { color: var(--teal); }
+
+.field-input, .field-select, .field-textarea {
+  background: var(--navy-mid);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  padding: 10px 13px;
+  transition: border-color 0.14s, box-shadow 0.14s;
+  width: 100%;
+  outline: none;
+}
+
+.field-input::placeholder, .field-textarea::placeholder { color: var(--text-muted); }
+.field-input:focus, .field-select:focus, .field-textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(0,184,165,0.1);
+}
+
+.field-select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A95B4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  padding-right: 34px;
+}
+
+.field-select option { background: var(--navy-mid); color: var(--text-primary); }
+.field-textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+.field-hint { font-size: 11px; color: var(--text-muted); }
+
+/* ── INDICATOR WIDGET ─────────────────────────────────────────────────── */
+.indicator-item {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+
+.indicator-item:hover { border-color: var(--border-strong); }
+
+.ta-widget {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+
+.ta-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.ta-row:last-child { margin-bottom: 0; }
+.ta-lbl { font-size: 11.5px; color: var(--text-muted); width: 54px; flex-shrink: 0; }
+
+.ta-input {
+  flex: 1;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 7px 11px;
+  outline: none;
+  transition: border-color 0.14s;
+}
+
+.ta-input:focus { border-color: var(--teal); }
+.ta-input::placeholder { color: var(--text-muted); font-weight: 400; }
+
+.pct-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.pct-bar-wrap { flex: 1; height: 5px; background: var(--border); border-radius: 3px; }
+.pct-bar-fill { height: 100%; border-radius: 3px; background: var(--teal); transition: width 0.4s; }
+.pct-val { font-size: 15px; font-weight: 700; color: var(--teal-light); min-width: 44px; text-align: right; }
+
+/* ── MILESTONES ──────────────────────────────────────────────────────── */
+.milestone-row {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.drag-handle { color: var(--text-muted); font-size: 14px; cursor: grab; padding-top: 3px; flex-shrink: 0; }
+
+.ms-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; flex: 1; }
+
+.ms-input, .ms-select {
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.14s;
+}
+
+.ms-input:focus, .ms-select:focus { border-color: var(--teal); }
+.ms-input::placeholder { color: var(--text-muted); }
+.ms-select { appearance: none; -webkit-appearance: none; cursor: pointer; }
+.ms-select option { background: var(--navy-mid); }
+
+/* ── RISK TABLE ──────────────────────────────────────────────────────── */
+.risk-row {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 2.5fr 1fr 1fr 2fr 30px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 7px;
+}
+
+.risk-input, .risk-select {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  padding: 6px 8px;
+  outline: none;
+  width: 100%;
+  transition: all 0.14s;
+}
+
+.risk-input:focus, .risk-select:focus {
+  background: var(--surface-hover);
+  border-color: var(--teal);
+}
+
+.risk-input::placeholder { color: var(--text-muted); }
+.risk-select { appearance: none; cursor: pointer; }
+.risk-select option { background: var(--navy-mid); }
+
+/* ── ADD BUTTON ──────────────────────────────────────────────────────── */
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: all 0.14s;
+  width: 100%;
+}
+
+.add-btn:hover { border-color: var(--teal); color: var(--teal-light); background: var(--teal-dim); }
+
+/* ── BUTTONS ─────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.14s;
+  border: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-primary { background: var(--teal); color: #fff; }
+.btn-primary:hover { background: var(--teal-light); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-strong); }
+.btn-ghost:hover { background: var(--surface-hover); color: var(--text-primary); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(224,82,82,0.2); }
+.btn-danger:hover { background: rgba(224,82,82,0.2); }
+.btn-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(244,166,35,0.2); }
+.btn-sm { padding: 6px 13px; font-size: 12px; }
+
+/* ── TRAFFIC LIGHT BADGES ─────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+.badge-green  { background: var(--green-dim);  color: var(--green);  }  .badge-green  .badge-dot { background: var(--green); }
+.badge-amber  { background: var(--amber-dim);  color: var(--amber);  }  .badge-amber  .badge-dot { background: var(--amber); }
+.badge-red    { background: var(--red-dim);    color: var(--red);    }  .badge-red    .badge-dot { background: var(--red); }
+.badge-blue   { background: var(--blue-dim);   color: var(--blue);   }  .badge-blue   .badge-dot { background: var(--blue); }
+.badge-purple { background: var(--purple-dim); color: var(--purple); }  .badge-purple .badge-dot { background: var(--purple); }
+
+/* ── FORM FOOTER ─────────────────────────────────────────────────────── */
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  background: var(--navy-mid);
+  border-top: 1px solid var(--border);
+  position: sticky;
+  bottom: 0;
+  gap: 12px;
+  flex-wrap: wrap;
+  z-index: 10;
+}
+
+.footer-info { font-size: 11.5px; color: var(--text-muted); }
+.footer-actions { display: flex; gap: 8px; }
+
+/* ── REVIEW ──────────────────────────────────────────────────────────── */
+.review-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  background: var(--teal-dim);
+  border: 1px solid rgba(0,184,165,0.2);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 22px;
+}
+
+.rev-item-label { font-size: 10px; color: rgba(0,196,175,0.6); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 3px; }
+.rev-item-value { font-family: var(--font-head); font-size: 18px; color: var(--teal-light); font-weight: 700; }
+
+/* ── DASHBOARD PROJECT TABLE ─────────────────────────────────────────── */
+.proj-table { width: 100%; border-collapse: collapse; }
+.proj-table th {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.proj-table td {
+  font-size: 13px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.proj-table tr:last-child td { border-bottom: none; }
+.proj-table tr:hover td { background: var(--surface); }
+.proj-table .proj-title { color: var(--text-primary); font-weight: 500; }
+
+.mini-bar-wrap { width: 80px; height: 5px; background: var(--border); border-radius: 3px; display: inline-block; vertical-align: middle; margin-right: 7px; }
+.mini-bar-fill { height: 100%; border-radius: 3px; }
+
+/* ── KOBO SYNC PANEL ────────────────────────────────────────────────── */
+.kobo-card {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 26px;
+  margin-bottom: 16px;
+}
+
+.kobo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.kobo-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kobo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #F4A623 0%, #E05252 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  font-family: var(--font-head);
+}
+
+.kobo-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.sync-log {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-family: monospace;
+  max-height: 100px;
+  overflow-y: auto;
+  line-height: 1.7;
+}
+
+.log-line { display: flex; gap: 8px; }
+.log-time { color: var(--text-muted); flex-shrink: 0; }
+.log-ok   { color: var(--green); }
+.log-warn { color: var(--amber); }
+.log-err  { color: var(--red); }
+
+/* ── LEARNING ────────────────────────────────────────────────────────── */
+.learning-card {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--purple);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  margin-bottom: 12px;
+}
+
+/* ── TOAST ───────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 76px;
+  right: 22px;
+  background: var(--navy-mid);
+  border: 1px solid var(--teal);
+  border-radius: var(--radius);
+  padding: 11px 18px;
+  font-size: 13px;
+  color: var(--teal-light);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+  transform: translateY(16px);
+  opacity: 0;
+  transition: all 0.22s;
+  z-index: 1000;
+  pointer-events: none;
+  max-width: 320px;
+}
+
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.toast-error { border-color: var(--red); color: var(--red); }
+.toast.toast-ok    { border-color: var(--green); color: var(--green); }
+
+/* ── LOADER ──────────────────────────────────────────────────────────── */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .sidebar { display: none; }
+  .content { padding: 22px 16px 72px; }
+  .topbar { padding: 0 16px; }
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+  .field.span-2, .field.span-3 { grid-column: span 1; }
+  .ms-grid { grid-template-columns: 1fr 1fr; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+  .review-strip { grid-template-columns: 1fr 1fr; }
+  .risk-row { grid-template-columns: 1fr 1fr; }
+  .kobo-form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ════════════════ SIDEBAR ════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <span class="brand-name">MEAL Pro</span>
+    </div>
+    <div class="brand-sub">Monitoring · Evaluation · Accountability · Learning</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section">Overview</div>
+    <button class="nav-item active" onclick="showView('dashboard')">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showView('projects')">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Projects
+      <span class="nav-badge" id="project-count-badge">—</span>
+    </button>
+
+    <div class="nav-section">Data Entry</div>
+    <button class="nav-item" onclick="showView('entry'); goToStep(0)">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Project Entry
+    </button>
+    <button class="nav-item" onclick="showView('kobo')">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      KoboToolbox Sync
+    </button>
+
+    <div class="nav-section">Analysis</div>
+    <button class="nav-item" onclick="showView('learning')">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Learning & Reflections
+    </button>
+    <button class="nav-item" onclick="showToast('📊 Reports module — connect API to generate Excel/PDF')">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Reports
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sync-status">
+      <div class="sync-dot" id="api-sync-dot"></div>
+      <span id="api-sync-label">Checking API…</span>
+    </div>
+    <div>MEAL Pro v2.0 · Supabase + KoboToolbox</div>
+  </div>
+</aside>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-breadcrumb">
+        <span id="breadcrumb-root">Dashboard</span>
+        <span id="breadcrumb-sep" style="display:none"> › </span>
+        <span class="current" id="breadcrumb-page"></span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="api-indicator">
+        <div class="api-dot" id="api-dot"></div>
+        <span id="api-status-text">Connecting…</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="saveDraft()">Save Draft</button>
+      <div class="avatar">MW</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ══════════ VIEW: DASHBOARD ══════════ -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Portfolio Overview</div>
+          <div class="page-title">MEAL Dashboard</div>
+          <div class="page-subtitle">Live snapshot of all projects, indicators, and risks</div>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="showView('entry'); goToStep(0)">+ Register Project</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--teal)"></div>
+          <div class="stat-label">Active Projects</div>
+          <div class="stat-value" id="dash-active">—</div>
+          <div class="stat-delta" id="dash-active-d">Loading…</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--green)"></div>
+          <div class="stat-label">Avg. Achievement</div>
+          <div class="stat-value" id="dash-achievement">—</div>
+          <div class="stat-delta up" id="dash-ach-d">Across all indicators</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--amber)"></div>
+          <div class="stat-label">Overdue Milestones</div>
+          <div class="stat-value" id="dash-overdue">—</div>
+          <div class="stat-delta down" id="dash-od-d">Require attention</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-accent" style="background:var(--red)"></div>
+          <div class="stat-label">High Risks</div>
+          <div class="stat-value" id="dash-risks">—</div>
+          <div class="stat-delta down">Score ≥ 6 unresolved</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <div class="card-title">Project Portfolio</div>
+            <div class="card-subtitle">All registered projects</div>
+          </div>
+          <div style="margin-left:auto;">
+            <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+          </div>
+        </div>
+        <div id="dash-table-wrap">
+          <table class="proj-table">
+            <thead><tr>
+              <th>Project</th><th>Thematic</th><th>Country</th><th>Status</th><th>Avg. Achievement</th><th>Milestones</th><th>Risks</th>
+            </tr></thead>
+            <tbody id="dash-table-body">
+              <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-muted)">Loading projects…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ══════════ VIEW: PROJECTS LIST ══════════ -->
+    <div class="view" id="view-projects">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Registry</div>
+          <div class="page-title">All Projects</div>
+        </div>
+        <button class="btn btn-primary" onclick="showView('entry'); goToStep(0)">+ New Project</button>
+      </div>
+      <div class="card">
+        <div id="proj-list-body" style="color:var(--text-muted);padding:20px;text-align:center">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ══════════ VIEW: DATA ENTRY ══════════ -->
+    <div class="view" id="view-entry">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">New Entry</div>
+          <div class="page-title">M&amp;E Project Registration</div>
+          <div class="page-subtitle">Complete all sections to register a project in the monitoring system</div>
+        </div>
+      </div>
+
+      <!-- STEPS BAR -->
+      <div class="steps-bar">
+        <div class="step active" id="st-0" onclick="goToStep(0)"><div class="step-num" id="sn-0">1</div><div class="step-label">Project Profile</div></div>
+        <div class="step-div"></div>
+        <div class="step" id="st-1" onclick="goToStep(1)"><div class="step-num" id="sn-1">2</div><div class="step-label">Indicators</div></div>
+        <div class="step-div"></div>
+        <div class="step" id="st-2" onclick="goToStep(2)"><div class="step-num" id="sn-2">3</div><div class="step-label">Milestones</div></div>
+        <div class="step-div"></div>
+        <div class="step" id="st-3" onclick="goToStep(3)"><div class="step-num" id="sn-3">4</div><div class="step-label">Risks</div></div>
+        <div class="step-div"></div>
+        <div class="step" id="st-4" onclick="goToStep(4)"><div class="step-num" id="sn-4">5</div><div class="step-label">Review &amp; Submit</div></div>
+      </div>
+
+      <!-- STEP 1: PROJECT PROFILE -->
+      <div class="section-page" id="pg-0">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div><div class="card-title">Project Identification</div><div class="card-subtitle">Basic project details and classification</div></div>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="field"><label class="field-label">Project Title <span class="req">*</span></label><input type="text" class="field-input" id="proj-title" placeholder="Full project name as per funding agreement"></div>
+            <div class="field"><label class="field-label">Project Code / ID <span class="req">*</span></label><input type="text" class="field-input" id="proj-code" placeholder="e.g. KE-2025-WASH-004"></div>
+            <div class="field"><label class="field-label">Implementing Organisation <span class="req">*</span></label><input type="text" class="field-input" id="proj-org" placeholder="Lead implementing partner"></div>
+            <div class="field"><label class="field-label">Donor / Funder</label><input type="text" class="field-input" id="proj-donor" placeholder="Primary funding source"></div>
+            <div class="field"><label class="field-label">Thematic Area <span class="req">*</span></label>
+              <select class="field-select" id="proj-theme">
+                <option value="">Select thematic area</option>
+                <option>Health &amp; Nutrition</option><option>WASH</option><option>Education</option>
+                <option>Food Security &amp; Livelihoods</option><option>Gender &amp; Social Inclusion</option>
+                <option>Governance &amp; Accountability</option><option>Environment &amp; Climate</option>
+                <option>Emergency Response</option><option>Other</option>
+              </select>
+            </div>
+            <div class="field"><label class="field-label">Project Status</label>
+              <select class="field-select" id="proj-status">
+                <option value="planning">Planning</option><option value="active" selected>Active</option>
+                <option value="review">Under Review</option><option value="closed">Closed</option>
+              </select>
+            </div>
+            <div class="field"><label class="field-label">Start Date <span class="req">*</span></label><input type="date" class="field-input" id="proj-start"></div>
+            <div class="field"><label class="field-label">End Date <span class="req">*</span></label><input type="date" class="field-input" id="proj-end"></div>
+            <div class="field span-2"><label class="field-label">Project Description / Objective</label><textarea class="field-textarea" id="proj-desc" placeholder="Briefly describe the project goal, key outputs, and target population…"></textarea></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+            <div><div class="card-title">Geographic Scope &amp; Beneficiaries</div><div class="card-subtitle">Implementation locations and target population</div></div>
+          </div>
+          <div class="form-grid form-grid-3">
+            <div class="field"><label class="field-label">Country <span class="req">*</span></label>
+              <select class="field-select" id="proj-country">
+                <option selected>Kenya</option><option>Uganda</option><option>Tanzania</option>
+                <option>Ethiopia</option><option>Rwanda</option><option>Somalia</option><option>South Sudan</option><option>Other</option>
+              </select>
+            </div>
+            <div class="field"><label class="field-label">County / Region</label><input type="text" class="field-input" id="proj-county" placeholder="e.g. Turkana, Kilifi"></div>
+            <div class="field"><label class="field-label">Sub-county / District</label><input type="text" class="field-input" id="proj-sub" placeholder="Specific areas"></div>
+            <div class="field"><label class="field-label">Total Beneficiaries</label><input type="number" class="field-input" id="proj-ben" placeholder="0" min="0"></div>
+            <div class="field"><label class="field-label">Female</label><input type="number" class="field-input" id="proj-ben-f" placeholder="0" min="0"></div>
+            <div class="field"><label class="field-label">Male</label><input type="number" class="field-input" id="proj-ben-m" placeholder="0" min="0"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div><div class="card-title">Project Team &amp; Budget</div><div class="card-subtitle">Key contacts and financial summary</div></div>
+          </div>
+          <div class="form-grid form-grid-2">
+            <div class="field"><label class="field-label">Project Manager <span class="req">*</span></label><input type="text" class="field-input" id="proj-pm" placeholder="Full name"></div>
+            <div class="field"><label class="field-label">PM Email</label><input type="email" class="field-input" id="proj-pm-email" placeholder="name@org.org"></div>
+            <div class="field"><label class="field-label">M&amp;E Officer <span class="req">*</span></label><input type="text" class="field-input" id="proj-meo" placeholder="Full name"></div>
+            <div class="field"><label class="field-label">M&amp;E Email</label><input type="email" class="field-input" id="proj-meo-email" placeholder="name@org.org"></div>
+            <div class="field"><label class="field-label">Reporting Period</label>
+              <select class="field-select" id="proj-rperiod">
+                <option>Monthly</option><option>Quarterly</option><option selected>Semi-annual</option><option>Annual</option>
+              </select>
+            </div>
+            <div class="field"><label class="field-label">Total Budget (USD)</label><input type="number" class="field-input" id="proj-budget" placeholder="0.00" min="0" step="0.01"></div>
+          </div>
+        </div>
+      </div><!-- /pg-0 -->
+
+      <!-- STEP 2: INDICATORS -->
+      <div class="section-page" id="pg-1" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <div><div class="card-title">Performance Indicators &amp; Targets</div><div class="card-subtitle">Enter each indicator with baseline, target, and actual values</div></div>
+            <div style="margin-left:auto;"><button class="btn btn-primary btn-sm" onclick="addIndicator()">+ Add Indicator</button></div>
+          </div>
+          <div id="indicator-list"></div>
+        </div>
+      </div><!-- /pg-1 -->
+
+      <!-- STEP 3: MILESTONES -->
+      <div class="section-page" id="pg-2" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div><div class="card-title">Milestones &amp; Activities</div><div class="card-subtitle">Key deliverables, due dates, and status</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;padding:0 0 8px;margin-bottom:4px;border-bottom:1px solid var(--border);">
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);padding-left:32px;">Milestone / Deliverable</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Due Date</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Status</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Responsible</span>
+          </div>
+          <div id="milestone-list"></div>
+          <button class="add-btn" style="margin-top:8px;" onclick="addMilestone()"><span style="font-size:15px;line-height:1;">+</span> Add milestone</button>
+        </div>
+      </div><!-- /pg-2 -->
+
+      <!-- STEP 4: RISKS -->
+      <div class="section-page" id="pg-3" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div><div class="card-title">Risks &amp; Assumptions Register</div><div class="card-subtitle">Identify, score, and mitigate project risks</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:2.5fr 1fr 1fr 2fr 30px;gap:8px;padding:0 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px;">
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Risk / Assumption</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Likelihood</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Impact</span>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);">Mitigation</span>
+            <span></span>
+          </div>
+          <div id="risk-list"></div>
+          <button class="add-btn" onclick="addRisk()"><span style="font-size:15px;line-height:1;">+</span> Add risk / assumption</button>
+        </div>
+      </div><!-- /pg-3 -->
+
+      <!-- STEP 5: REVIEW -->
+      <div class="section-page" id="pg-4" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div><div class="card-title">Review &amp; Submit</div><div class="card-subtitle">Verify your entry before submitting to the database</div></div>
+          </div>
+          <div class="review-strip">
+            <div><div class="rev-item-label">Project</div><div class="rev-item-value" id="rev-title">—</div></div>
+            <div><div class="rev-item-label">Indicators</div><div class="rev-item-value" id="rev-ind">0</div></div>
+            <div><div class="rev-item-label">Milestones</div><div class="rev-item-value" id="rev-ms">0</div></div>
+            <div><div class="rev-item-label">Risks</div><div class="rev-item-value" id="rev-risk">0</div></div>
+          </div>
+
+          <div class="form-grid form-grid-2" style="margin-bottom:20px;">
+            <div class="field">
+              <label class="field-label">Submitted by (Full Name) <span class="req">*</span></label>
+              <input type="text" class="field-input" id="sub-name" placeholder="Your full name">
+            </div>
+            <div class="field">
+              <label class="field-label">Submission Date</label>
+              <input type="date" class="field-input" id="sub-date">
+            </div>
+            <div class="field span-2">
+              <label class="field-label">Additional Notes</label>
+              <textarea class="field-textarea" id="sub-notes" placeholder="Any additional context for the M&E team…" style="min-height:70px;"></textarea>
+            </div>
+          </div>
+
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text-secondary);">
+            <input type="checkbox" id="declaration-check" style="margin-top:3px;accent-color:var(--teal);">
+            I confirm that the information entered is accurate to the best of my knowledge, and I am authorised to submit this project record to the M&amp;E database.
+          </label>
+        </div>
+      </div><!-- /pg-4 -->
+
+      <!-- FORM FOOTER -->
+      <div class="form-footer">
+        <div class="footer-info" id="footer-info">Step 1 of 5 — Project Profile</div>
+        <div class="footer-actions">
+          <button class="btn btn-ghost" id="btn-back" style="display:none;" onclick="goToStep(currentStep-1)">← Back</button>
+          <button class="btn btn-ghost" onclick="saveDraft()">Save Draft</button>
+          <button class="btn btn-primary" id="btn-next" onclick="goToStep(currentStep+1)">Continue →</button>
+          <button class="btn btn-primary" id="btn-submit" style="display:none;" onclick="submitProject()">
+            <span id="submit-icon">✓</span>
+            <span id="submit-label">Submit to Database</span>
+          </button>
+        </div>
+      </div>
+    </div><!-- /view-entry -->
+
+    <!-- ══════════ VIEW: KOBO SYNC ══════════ -->
+    <div class="view" id="view-kobo">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Integration</div>
+          <div class="page-title">KoboToolbox Sync</div>
+          <div class="page-subtitle">Pull field data into your MEAL database from KoboToolbox forms</div>
+        </div>
+      </div>
+
+      <div class="kobo-card">
+        <div class="kobo-header">
+          <div class="kobo-logo">
+            <div class="kobo-icon">K</div>
+            <div>
+              <div style="font-weight:600;font-size:14px;color:var(--text-primary);">KoboToolbox API Integration</div>
+              <div style="font-size:12px;color:var(--text-muted);">Pull data via REST API or receive real-time webhooks</div>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="listKoboForms()">List Available Forms</button>
+        </div>
+
+        <div class="kobo-form-row">
+          <div class="field">
+            <label class="field-label">KoboToolbox Form Asset UID</label>
+            <input type="text" class="field-input" id="kobo-uid" placeholder="e.g. aXmK3bVqR2nP7dTw">
+          </div>
+          <div class="field">
+            <label class="field-label">Link to Project</label>
+            <select class="field-select" id="kobo-project">
+              <option value="">Select project</option>
+            </select>
+          </div>
+          <button class="btn btn-amber" onclick="triggerKoboSync()">
+            <span id="kobo-sync-icon">↻</span> Sync Now
+          </button>
+        </div>
+
+        <div id="sync-log" class="sync-log">
+          <div class="log-line"><span class="log-time">System</span><span style="color:var(--text-muted);">KoboToolbox sync panel ready. Enter form UID and click Sync Now.</span></div>
+          <div class="log-line"><span class="log-time">Tip</span><span style="color:var(--text-muted);">For real-time sync, configure a webhook in KoboToolbox → Project Settings → REST Services → POST to your API URL.</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="card-title">Sync History</div><div class="card-subtitle">Recent KoboToolbox data pulls</div></div>
+        </div>
+        <div id="sync-history" style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">Connect your API to see sync history.</div>
+      </div>
+    </div><!-- /view-kobo -->
+
+    <!-- ══════════ VIEW: LEARNING ══════════ -->
+    <div class="view" id="view-learning">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">The "L" in MEAL</div>
+          <div class="page-title">Learning &amp; Reflections</div>
+          <div class="page-subtitle">Capture lessons learned, best practices, and programme adaptations</div>
+        </div>
+        <button class="btn btn-primary" onclick="addLearning()">+ Add Entry</button>
+      </div>
+
+      <div id="learning-list">
+        <div class="learning-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span class="badge badge-purple"><span class="badge-dot"></span>Lesson Learned</span>
+            <span style="font-size:11px;color:var(--text-muted);">Q1-2025 · WASH Project</span>
+          </div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:6px;color:var(--text-primary);">Community mobilisation works better through local structures</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Engaging village elders and women's groups increased programme uptake by 34% compared to direct field officer outreach. This approach should be replicated in future WASH programming.</div>
+          <div style="font-size:12px;color:var(--text-muted);display:flex;gap:10px;">
+            <span>📌 Applicable to: WASH, Health, FSL programmes</span>
+            <span>· Entered by: Jane Wanjiku</span>
+          </div>
+        </div>
+        <div class="learning-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span class="badge badge-green"><span class="badge-dot"></span>Best Practice</span>
+            <span style="font-size:11px;color:var(--text-muted);">Q4-2024 · Nutrition Programme</span>
+          </div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:6px;color:var(--text-primary);">Integrating KoboToolbox with real-time dashboards reduced reporting lag by 2 weeks</div>
+          <div style="font-size:13px;color:var(--text-secondary);">Configuring webhooks to push data directly to the MEAL database eliminated the manual Excel transfer step, improving data timeliness and accuracy significantly.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// Change this to your actual API URL (Node.js or Python backend)
+const API_BASE = 'http://localhost:3000';   // Node.js api.js
+// const API_BASE = 'http://localhost:8000'; // Python meal_utils.py
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentStep  = 0;
+const totalSteps = 5;
+const stepLabels = ['Project Profile','Indicators & Targets','Milestones','Risks & Assumptions','Review & Submit'];
+let indicators = [], milestones = [], risks = [];
+let indC = 0, msC = 0, riskC = 0;
+let apiConnected = false;
+
+// ─── API HELPERS ──────────────────────────────────────────────────────────────
+async function apiGet(path) {
+  const r = await fetch(API_BASE + path);
+  return r.json();
+}
+
+async function apiPost(path, body) {
+  const r = await fetch(API_BASE + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return r.json();
+}
+
+// ─── API STATUS ───────────────────────────────────────────────────────────────
+async function checkApi() {
+  try {
+    const r = await fetch(API_BASE + '/health', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      apiConnected = true;
+      document.getElementById('api-dot').classList.add('connected');
+      document.getElementById('api-status-text').textContent = 'API connected';
+      document.getElementById('api-sync-label').textContent = 'API connected';
+      document.getElementById('api-sync-dot').style.background = 'var(--green)';
+    }
+  } catch {
+    document.getElementById('api-status-text').textContent = 'API offline — demo mode';
+    document.getElementById('api-sync-label').textContent = 'Demo mode (no API)';
+  }
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const map = { dashboard:'0', projects:'1', entry:'2', kobo:'3', learning:'5' };
+  document.querySelectorAll('.nav-item')[parseInt(map[name] || 0)]?.classList.add('active');
+  document.getElementById('breadcrumb-root').textContent =
+    { dashboard:'Dashboard', projects:'Projects', entry:'Data Entry', kobo:'KoboToolbox Sync', learning:'Learning' }[name] || name;
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'projects')  loadProjects();
+  if (name === 'kobo')      loadKoboProjects();
+}
+
+// ─── STEP NAVIGATION ──────────────────────────────────────────────────────────
+function goToStep(n) {
+  if (n === 4) populateReview();
+  document.querySelectorAll('.section-page').forEach((p, i) => {
+    p.style.display = i === n ? 'block' : 'none';
+  });
+  for (let i = 0; i < totalSteps; i++) {
+    const tab = document.getElementById('st-' + i);
+    const num = document.getElementById('sn-' + i);
+    tab.className = 'step';
+    if (i < n) { tab.classList.add('done'); num.innerHTML = '✓'; }
+    else if (i === n) { tab.classList.add('active'); num.textContent = i + 1; }
+    else num.textContent = i + 1;
+  }
+  currentStep = n;
+  document.getElementById('footer-info').textContent = `Step ${n+1} of ${totalSteps} — ${stepLabels[n]}`;
+  document.getElementById('btn-back').style.display   = n > 0 ? 'inline-flex' : 'none';
+  document.getElementById('btn-next').style.display   = n < totalSteps - 1 ? 'inline-flex' : 'none';
+  document.getElementById('btn-submit').style.display = n === totalSteps - 1 ? 'inline-flex' : 'none';
+}
+
+// ─── INDICATORS ───────────────────────────────────────────────────────────────
+function addIndicator() {
+  const id = indC++;
+  indicators.push({ id });
+  renderIndicators();
+}
+
+function removeIndicator(id) {
+  indicators = indicators.filter(i => i.id !== id);
+  renderIndicators();
+}
+
+function renderIndicators() {
+  const el = document.getElementById('indicator-list');
+  if (!indicators.length) {
+    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No indicators yet. Click "+ Add Indicator" above.</div>';
+    return;
+  }
+  el.innerHTML = indicators.map((ind, idx) => `
+    <div class="indicator-item">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <span style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);">Indicator ${idx+1}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeIndicator(${ind.id})">Remove</button>
+      </div>
+      <div class="form-grid form-grid-2" style="margin-bottom:12px;">
+        <div class="field span-2"><label class="field-label">Indicator Name / Description <span class="req">*</span></label>
+          <input type="text" class="field-input" id="ind-name-${ind.id}" placeholder="e.g. # of community health workers trained (disaggregated by sex)"></div>
+        <div class="field"><label class="field-label">Result Level</label>
+          <select class="field-select" id="ind-level-${ind.id}">
+            <option value="activity">Activity / Process</option><option value="output" selected>Output</option>
+            <option value="outcome">Outcome</option><option value="impact">Impact</option>
+          </select></div>
+        <div class="field"><label class="field-label">Unit of Measurement</label>
+          <input type="text" class="field-input" id="ind-unit-${ind.id}" placeholder="e.g. Number, %, Score, KG"></div>
+        <div class="field"><label class="field-label">Data Source</label>
+          <input type="text" class="field-input" id="ind-src-${ind.id}" placeholder="e.g. Training register, KoboToolbox survey"></div>
+        <div class="field"><label class="field-label">Collection Frequency</label>
+          <select class="field-select" id="ind-freq-${ind.id}">
+            <option>Monthly</option><option>Quarterly</option><option selected>Semi-annual</option><option>Annual</option>
+          </select></div>
+      </div>
+      <div class="ta-widget">
+        <div class="ta-row"><div class="ta-lbl">Baseline</div><input type="number" class="ta-input" id="ind-base-${ind.id}" placeholder="Starting value"></div>
+        <div class="ta-row"><div class="ta-lbl">Target</div><input type="number" class="ta-input" id="ind-tgt-${ind.id}" placeholder="Target value" oninput="calcPct(${ind.id})"></div>
+        <div class="ta-row"><div class="ta-lbl">Actual</div><input type="number" class="ta-input" id="ind-act-${ind.id}" placeholder="Actual achieved" oninput="calcPct(${ind.id})"></div>
+        <div class="pct-row">
+          <div class="pct-bar-wrap"><div class="pct-bar-fill" id="pct-bar-${ind.id}" style="width:0%"></div></div>
+          <div class="pct-val" id="pct-val-${ind.id}">—</div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label class="field-label">Data Quality Notes / Caveats</label>
+        <input type="text" class="field-input" id="ind-notes-${ind.id}" placeholder="Challenges, caveats, or limitations…">
+      </div>
+    </div>
+  `).join('');
+}
+
+function calcPct(id) {
+  const t = parseFloat(document.getElementById('ind-tgt-' + id)?.value) || 0;
+  const a = parseFloat(document.getElementById('ind-act-' + id)?.value) || 0;
+  const pctV = document.getElementById('pct-val-' + id);
+  const pctB = document.getElementById('pct-bar-' + id);
+  if (!t) { pctV.textContent = '—'; pctB.style.width = '0%'; return; }
+  const p = Math.round((a / t) * 100);
+  pctV.textContent = p + '%';
+  pctB.style.width = Math.min(p, 100) + '%';
+  const c = p >= 80 ? 'var(--green)' : p >= 50 ? 'var(--amber)' : 'var(--red)';
+  pctV.style.color = c;
+  pctB.style.background = c;
+}
+
+// ─── MILESTONES ───────────────────────────────────────────────────────────────
+function addMilestone() {
+  const id = msC++;
+  milestones.push({ id });
+  renderMilestones();
+}
+
+function removeMilestone(id) {
+  milestones = milestones.filter(m => m.id !== id);
+  renderMilestones();
+}
+
+function renderMilestones() {
+  const el = document.getElementById('milestone-list');
+  if (!milestones.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No milestones yet.</div>';
+    return;
+  }
+  el.innerHTML = milestones.map((m, idx) => `
+    <div class="milestone-row">
+      <div class="drag-handle">⠿</div>
+      <div class="ms-grid">
+        <input type="text" class="ms-input" id="ms-title-${m.id}" placeholder="Milestone / deliverable description">
+        <input type="date" class="ms-input" id="ms-date-${m.id}">
+        <select class="ms-select" id="ms-status-${m.id}">
+          <option value="not_started">Not started</option><option value="in_progress">In progress</option>
+          <option value="completed">Completed</option><option value="delayed">Delayed</option><option value="cancelled">Cancelled</option>
+        </select>
+        <input type="text" class="ms-input" id="ms-resp-${m.id}" placeholder="Responsible person">
+      </div>
+      <button class="btn btn-danger btn-sm" style="padding:6px 10px;flex-shrink:0;" onclick="removeMilestone(${m.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+// ─── RISKS ────────────────────────────────────────────────────────────────────
+function addRisk() {
+  const id = riskC++;
+  risks.push({ id });
+  renderRisks();
+}
+
+function removeRisk(id) {
+  risks = risks.filter(r => r.id !== id);
+  renderRisks();
+}
+
+function renderRisks() {
+  const el = document.getElementById('risk-list');
+  if (!risks.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No risks added yet.</div>';
+    return;
+  }
+  el.innerHTML = risks.map(r => `
+    <div class="risk-row">
+      <input class="risk-input" id="risk-desc-${r.id}" type="text" placeholder="Describe the risk or assumption…">
+      <select class="risk-select" id="risk-lkh-${r.id}">
+        <option value="low">Low</option><option value="medium" selected>Medium</option>
+        <option value="high">High</option><option value="critical">Critical</option>
+      </select>
+      <select class="risk-select" id="risk-imp-${r.id}">
+        <option value="low">Low</option><option value="medium" selected>Medium</option>
+        <option value="high">High</option><option value="critical">Critical</option>
+      </select>
+      <input class="risk-input" id="risk-mit-${r.id}" type="text" placeholder="Mitigation strategy…">
+      <button class="btn btn-danger" style="padding:5px 8px;font-size:13px;" onclick="removeRisk(${r.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+// ─── REVIEW ───────────────────────────────────────────────────────────────────
+function populateReview() {
+  const title = document.getElementById('proj-title')?.value || '—';
+  document.getElementById('rev-title').textContent = title.length > 22 ? title.slice(0, 22) + '…' : title;
+  document.getElementById('rev-ind').textContent   = indicators.length;
+  document.getElementById('rev-ms').textContent    = milestones.length;
+  document.getElementById('rev-risk').textContent  = risks.length;
+  if (!document.getElementById('sub-date').value)
+    document.getElementById('sub-date').value = new Date().toISOString().slice(0, 10);
+}
+
+// ─── SUBMIT ───────────────────────────────────────────────────────────────────
+async function submitProject() {
+  if (!document.getElementById('declaration-check').checked) {
+    return showToast('Please tick the declaration checkbox to confirm.', 'error');
+  }
+  const submitter = document.getElementById('sub-name')?.value.trim();
+  if (!submitter) return showToast('Please enter your name in the declaration section.', 'error');
+
+  const payload = {
+    title:          document.getElementById('proj-title')?.value,
+    code:           document.getElementById('proj-code')?.value,
+    organisation:   document.getElementById('proj-org')?.value,
+    donor:          document.getElementById('proj-donor')?.value,
+    thematic_area:  document.getElementById('proj-theme')?.value,
+    status:         document.getElementById('proj-status')?.value,
+    start_date:     document.getElementById('proj-start')?.value,
+    end_date:       document.getElementById('proj-end')?.value,
+    description:    document.getElementById('proj-desc')?.value,
+    country:        document.getElementById('proj-country')?.value,
+    county_region:  document.getElementById('proj-county')?.value,
+    sub_county:     document.getElementById('proj-sub')?.value,
+    beneficiaries_total:  parseInt(document.getElementById('proj-ben')?.value) || null,
+    beneficiaries_female: parseInt(document.getElementById('proj-ben-f')?.value) || null,
+    beneficiaries_male:   parseInt(document.getElementById('proj-ben-m')?.value) || null,
+    project_manager:  document.getElementById('proj-pm')?.value,
+    pm_email:         document.getElementById('proj-pm-email')?.value,
+    me_officer:       document.getElementById('proj-meo')?.value,
+    me_officer_email: document.getElementById('proj-meo-email')?.value,
+    reporting_period: document.getElementById('proj-rperiod')?.value?.toLowerCase().replace(' ',  '_').replace('-', '_'),
+    budget_usd:       parseFloat(document.getElementById('proj-budget')?.value) || null,
+    indicators: indicators.map(ind => ({
+      name:               document.getElementById('ind-name-' + ind.id)?.value,
+      result_level:       document.getElementById('ind-level-' + ind.id)?.value,
+      unit_of_measurement: document.getElementById('ind-unit-' + ind.id)?.value || 'Number',
+      data_source:        document.getElementById('ind-src-' + ind.id)?.value,
+      collection_frequency: document.getElementById('ind-freq-' + ind.id)?.value?.toLowerCase().replace('-', '_').replace(' ', '_'),
+      baseline_value:     parseFloat(document.getElementById('ind-base-' + ind.id)?.value) || null,
+      overall_target:     parseFloat(document.getElementById('ind-tgt-' + ind.id)?.value) || null,
+      overall_actual:     parseFloat(document.getElementById('ind-act-' + ind.id)?.value) || null,
+      data_quality_notes: document.getElementById('ind-notes-' + ind.id)?.value,
+    })),
+    milestones: milestones.map(m => ({
+      title:       document.getElementById('ms-title-' + m.id)?.value,
+      due_date:    document.getElementById('ms-date-' + m.id)?.value || null,
+      status:      document.getElementById('ms-status-' + m.id)?.value,
+      responsible: document.getElementById('ms-resp-' + m.id)?.value,
+    })),
+    risks: risks.map(r => ({
+      title:       document.getElementById('risk-desc-' + r.id)?.value,
+      risk_type:   'risk',
+      likelihood:  document.getElementById('risk-lkh-' + r.id)?.value,
+      impact:      document.getElementById('risk-imp-' + r.id)?.value,
+      mitigation:  document.getElementById('risk-mit-' + r.id)?.value,
+    })),
+  };
+
+  // Validate required
+  if (!payload.title || !payload.code || !payload.organisation) {
+    return showToast('Please fill in the required fields on Step 1 first.', 'error');
+  }
+
+  const btn  = document.getElementById('btn-submit');
+  const icon = document.getElementById('submit-icon');
+  const lbl  = document.getElementById('submit-label');
+  btn.disabled = true;
+  icon.innerHTML = '<span class="spinner"></span>';
+  lbl.textContent = 'Submitting…';
+
+  try {
+    if (apiConnected) {
+      const result = await apiPost('/api/projects', payload);
+      if (result.success) {
+        showToast('✓ Project submitted successfully to the M&E database!', 'ok');
+      } else {
+        throw new Error(result.error || 'Submission failed');
+      }
+    } else {
+      // Demo mode: simulate success
+      await new Promise(r => setTimeout(r, 1200));
+      showToast('✓ Demo mode — project data ready. Connect API to save to database.', 'ok');
+    }
+
+    setTimeout(() => {
+      // Reset form
+      document.querySelectorAll('.field-input, .field-textarea').forEach(el => el.value = '');
+      document.getElementById('declaration-check').checked = false;
+      indicators = []; milestones = []; risks = [];
+      renderIndicators(); renderMilestones(); renderRisks();
+      goToStep(0);
+      btn.disabled = false;
+      icon.textContent = '✓';
+      lbl.textContent = 'Submit to Database';
+    }, 2000);
+
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+    btn.disabled = false;
+    icon.textContent = '✓';
+    lbl.textContent = 'Submit to Database';
+  }
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    if (!apiConnected) {
+      renderDemoDashboard();
+      return;
+    }
+    const r = await apiGet('/api/dashboard');
+    if (!r.success) { renderDemoDashboard(); return; }
+
+    const portfolio = r.data.portfolio || [];
+    const active    = portfolio.reduce((s, p) => s + (p.active_projects || 0), 0);
+    const total_ben = portfolio.reduce((s, p) => s + (p.total_beneficiaries || 0), 0);
+
+    document.getElementById('dash-active').textContent       = active || '—';
+    document.getElementById('dash-overdue').textContent      = r.data.overdue?.length || 0;
+    document.getElementById('dash-risks').textContent        = r.data.high_risks?.length || 0;
+
+    await loadProjectsTable('dash-table-body');
+  } catch {
+    renderDemoDashboard();
+  }
+}
+
+function renderDemoDashboard() {
+  document.getElementById('dash-active').textContent      = '3';
+  document.getElementById('dash-achievement').textContent = '74%';
+  document.getElementById('dash-overdue').textContent     = '2';
+  document.getElementById('dash-risks').textContent       = '1';
+  document.getElementById('dash-active-d').textContent    = 'Demo data (connect API)';
+
+  const tbody = document.getElementById('dash-table-body');
+  const demo = [
+    { code:'KE-2025-WASH-001', title:'Integrated WASH & Nutrition Turkana', thematic_area:'WASH', country:'Kenya', status:'active', avg_achievement_rate:82, milestone_count:6, risk_count:3 },
+    { code:'KE-2025-HEA-002',  title:'Community Health Systems Strengthening', thematic_area:'Health & Nutrition', country:'Kenya', status:'active', avg_achievement_rate:67, milestone_count:8, risk_count:2 },
+    { code:'UG-2024-EDU-003',  title:'Girls Education Access Programme', thematic_area:'Education', country:'Uganda', status:'review', avg_achievement_rate:55, milestone_count:5, risk_count:4 },
+  ];
+  tbody.innerHTML = demo.map(p => renderProjectRow(p)).join('');
+}
+
+async function loadProjectsTable(tbodyId) {
+  try {
+    const r = await apiGet('/api/projects');
+    if (!r.success || !r.data?.length) { return; }
+    document.getElementById(tbodyId).innerHTML = r.data.map(renderProjectRow).join('');
+    document.getElementById('project-count-badge').textContent = r.data.length;
+  } catch { /* silent */ }
+}
+
+function renderProjectRow(p) {
+  const rate  = p.avg_achievement_rate || 0;
+  const color = rate >= 80 ? 'var(--green)' : rate >= 50 ? 'var(--amber)' : 'var(--red)';
+  const statusBadge = {
+    active:   '<span class="badge badge-green"><span class="badge-dot"></span>Active</span>',
+    planning: '<span class="badge badge-blue"><span class="badge-dot"></span>Planning</span>',
+    review:   '<span class="badge badge-amber"><span class="badge-dot"></span>Review</span>',
+    closed:   '<span class="badge badge-red" style="opacity:.7"><span class="badge-dot"></span>Closed</span>',
+  }[p.status] || p.status;
+
+  return `<tr>
+    <td><div class="proj-title">${p.title || '—'}</div><div style="font-size:11px;color:var(--text-muted);margin-top:1px;">${p.code || ''}</div></td>
+    <td>${p.thematic_area || '—'}</td>
+    <td>${p.country || '—'}</td>
+    <td>${statusBadge}</td>
+    <td>
+      <span class="mini-bar-wrap"><span class="mini-bar-fill" style="width:${Math.min(rate,100)}%;background:${color}"></span></span>
+      <span style="font-size:12px;color:${color};font-weight:600;">${rate ? Math.round(rate) + '%' : '—'}</span>
+    </td>
+    <td style="font-size:12px;">${p.milestone_count || 0}</td>
+    <td style="font-size:12px;">${p.risk_count || 0}</td>
+  </tr>`;
+}
+
+async function loadProjects() {
+  const el = document.getElementById('proj-list-body');
+  try {
+    if (!apiConnected) {
+      el.innerHTML = `<table class="proj-table"><thead><tr><th>Project</th><th>Thematic</th><th>Country</th><th>Status</th><th>Achievement</th></tr></thead><tbody id="pl-tbody"></tbody></table>`;
+      renderDemoDashboard();
+      return;
+    }
+    const r = await apiGet('/api/projects');
+    el.innerHTML = `<table class="proj-table"><thead><tr><th>Project</th><th>Thematic</th><th>Country</th><th>Status</th><th>Achievement</th><th>Milestones</th><th>Risks</th></tr></thead><tbody>${r.data?.map(renderProjectRow).join('') || ''}</tbody></table>`;
+  } catch (e) {
+    el.textContent = 'Error loading projects.';
+  }
+}
+
+// ─── KOBO ─────────────────────────────────────────────────────────────────────
+async function loadKoboProjects() {
+  const sel = document.getElementById('kobo-project');
+  sel.innerHTML = '<option value="">Select project</option>';
+  try {
+    if (!apiConnected) {
+      ['KE-2025-WASH-001 — WASH Turkana', 'KE-2025-HEA-002 — Health Systems'].forEach((p, i) => {
+        sel.innerHTML += `<option value="demo-${i}">${p}</option>`;
+      });
+      return;
+    }
+    const r = await apiGet('/api/projects?status=active');
+    (r.data || []).forEach(p => {
+      sel.innerHTML += `<option value="${p.id}">${p.code} — ${p.title}</option>`;
+    });
+  } catch { /* silent */ }
+}
+
+async function listKoboForms() {
+  addSyncLog('Fetching forms from KoboToolbox…', 'info');
+  try {
+    if (!apiConnected) {
+      addSyncLog('Demo mode: connect API then set KOBO_API_TOKEN in .env', 'warn');
+      return;
+    }
+    const r = await apiGet('/api/kobo/forms');
+    (r.data || []).forEach(f => {
+      addSyncLog(`${f.uid} — ${f.name} (${f.submissions} submissions)`, 'ok');
+    });
+  } catch (e) {
+    addSyncLog('Error: ' + e.message, 'err');
+  }
+}
+
+async function triggerKoboSync() {
+  const uid   = document.getElementById('kobo-uid')?.value.trim();
+  const projId = document.getElementById('kobo-project')?.value;
+  if (!uid) return showToast('Enter a KoboToolbox Asset UID first.', 'error');
+
+  const btn = document.querySelector('[onclick="triggerKoboSync()"]');
+  btn.disabled = true;
+  document.getElementById('kobo-sync-icon').innerHTML = '<span class="spinner"></span>';
+  addSyncLog(`Starting sync for form ${uid}…`, 'info');
+
+  try {
+    if (!apiConnected) {
+      await new Promise(r => setTimeout(r, 1200));
+      addSyncLog('Demo: API not connected. Run api.js and configure .env first.', 'warn');
+    } else {
+      const r = await apiPost('/api/kobo/sync', { asset_uid: uid, project_id: projId });
+      if (r.success) {
+        addSyncLog(`✓ Sync started. Log ID: ${r.data.log_id}`, 'ok');
+      } else {
+        addSyncLog('Error: ' + (r.error || 'Unknown'), 'err');
+      }
+    }
+  } catch (e) {
+    addSyncLog('Error: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('kobo-sync-icon').textContent = '↻';
+  }
+}
+
+function addSyncLog(msg, type = 'info') {
+  const log = document.getElementById('sync-log');
+  const time = new Date().toLocaleTimeString();
+  const cls = { ok: 'log-ok', warn: 'log-warn', err: 'log-err', info: '' }[type] || '';
+  log.innerHTML += `<div class="log-line"><span class="log-time">${time}</span><span class="${cls}">${msg}</span></div>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+// ─── LEARNING ─────────────────────────────────────────────────────────────────
+function addLearning() {
+  showToast('Learning entry form — add your API endpoint at POST /api/learning');
+}
+
+// ─── DRAFT ────────────────────────────────────────────────────────────────────
+function saveDraft() {
+  const draft = { proj_title: document.getElementById('proj-title')?.value, saved_at: new Date().toISOString() };
+  localStorage.setItem('meal_draft', JSON.stringify(draft));
+  showToast('Draft saved at ' + new Date().toLocaleTimeString());
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type === 'error' ? ' toast-error' : type === 'ok' ? ' toast-ok' : '');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderIndicators();
+renderMilestones();
+renderRisks();
+addIndicator();
+addMilestone();
+addRisk();
+goToStep(0);
+checkApi();
+loadDashboard();
+</script>
+</body>
+</html>
