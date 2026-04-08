@@ -603,7 +603,6 @@ cron.schedule("0 8 * * 1", async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const path = require("path");
-app.use(express.static(path.join(__dirname)));
 app.get("/health", (req, res) => {
   res.json({
     status:  "ok",
