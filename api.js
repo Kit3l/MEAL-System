@@ -6,7 +6,9 @@
  *
  * Setup:
  *   npm init -y
- *   npm install express cors dotenv @supabase/supabase-js axios node-cron helmet express-rate-limit
+ *   npm install express cors dotenv @supabase/supabase-js axios node-cronapp.use(helmet({
+  contentSecurityPolicy: false,
+}));
  *
  * .env file needed:
  *   PORT=3000
@@ -366,11 +368,32 @@ app.post("/api/kobo/webhook", async (req, res) => {
   }
 });
 
-/**
- * POST /api/kobo/sync/:assetUid
- * Manually trigger a sync from a KoboToolbox form asset.
- * assetUid = the alphanumeric ID from your KoboToolbox form URL.
- */
+app.post("/api/kobo/sync", async (req, res) => {
+  const { asset_uid, project_id, indicator_id } = req.body;
+  if (!asset_uid) return err(res, "asset_uid is required", 422);
+  req.params = { assetUid: asset_uid };
+  req.body.project_id = project_id;
+
+  const { data: syncLog } = await supabase
+    .from("kobo_sync_log")
+    .insert({
+      project_id,
+      kobo_asset_uid: asset_uid,
+      sync_type: "pull",
+      status: "running",
+    })
+    .select()
+    .single();
+
+  const logId = syncLog?.id;
+  res.status(202).json({
+    success: true,
+    data: { message: "Sync started", log_id: logId },
+  });
+
+  runKoboSync(asset_uid, project_id, indicator_id, logId).catch(console.error);
+});
+
 app.post("/api/kobo/sync/:assetUid", async (req, res) => {
   const { assetUid } = req.params;
   const { project_id, indicator_id } = req.body;
@@ -579,6 +602,8 @@ cron.schedule("0 8 * * 1", async () => {
 // HEALTH CHECK & START
 // ─────────────────────────────────────────────────────────────────────────────
 
+const path = require("path");
+app.use(express.static(path.join(__dirname)));
 app.get("/health", (req, res) => {
   res.json({
     status:  "ok",
