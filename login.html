@@ -172,13 +172,13 @@ async function signIn() {
     else showError(error.message);
     return;
   }
-  window.location.href = 'dlci_index.html';
+  window.location.href = 'index.html';
 }
 
 async function signInGoogle() {
   const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/dlci_index.html' }
+    options: { redirectTo: window.location.origin + '/index.html' }
   });
   if (error) showError('Google sign-in failed: ' + error.message);
 }
@@ -192,7 +192,7 @@ async function forgotPassword() {
 }
 
 sb.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.href = 'dlci_index.html';
+  if (session) window.location.href = 'index.html';
 });
 </script>
 </body>
