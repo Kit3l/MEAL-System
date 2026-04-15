@@ -603,6 +603,8 @@ cron.schedule("0 8 * * 1", async () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const path = require("path");
+app.use(express.static(path.join(__dirname)));
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
