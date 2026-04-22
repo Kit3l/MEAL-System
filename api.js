@@ -627,6 +627,239 @@ app.use((error, req, res, next) => {
   console.error("[Unhandled]", error);
   err(res, "Internal server error", 500);
 });
+// ─── ACTIVITIES (INDICATORS) ──────────────────────────────────────────────────
+
+// PATCH indicator/activity — update actuals, budget, impact
+app.patch('/api/indicators/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('indicators')
+    .update(req.body)
+    .eq('id', req.params.id)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+// POST new activity to existing project
+app.post('/api/projects/:id/indicators', async (req, res) => {
+  const payload = { ...req.body, project_id: req.params.id };
+  const { data, error } = await supabase
+    .from('indicators')
+    .insert(payload)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+// ─── MILESTONES / ACHIEVEMENTS ────────────────────────────────────────────────
+
+// PATCH milestone/achievement — update status, completion, activity link
+app.patch('/api/milestones/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('milestones')
+    .update(req.body)
+    .eq('id', req.params.id)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+// POST new achievement to existing project
+app.post('/api/projects/:id/milestones', async (req, res) => {
+  const payload = { ...req.body, project_id: req.params.id };
+  const { data, error } = await supabase
+    .from('milestones')
+    .insert(payload)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+// POST new achievement directly to an activity
+app.post('/api/activities/:id/achievements', async (req, res) => {
+  const payload = { ...req.body, activity_id: req.params.id };
+  const { data, error } = await supabase
+    .from('milestones')
+    .insert(payload)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+// ─── IMPACTS ──────────────────────────────────────────────────────────────────
+
+// GET impacts for a project
+app.get('/api/projects/:id/impacts', async (req, res) => {
+  const { data, error } = await supabase
+    .from('impacts')
+    .select('*')
+    .eq('project_id', req.params.id)
+    .order('created_at', { ascending: true });
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+// POST new impact
+app.post('/api/impacts', async (req, res) => {
+  const { data, error } = await supabase
+    .from('impacts')
+    .insert(req.body)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+// PATCH impact
+app.patch('/api/impacts/:id', async (req, res) => {
+  const { data, error } = await supabase
+    .from('impacts')
+    .update(req.body)
+    .eq('id', req.params.id)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+// DELETE impact
+app.delete('/api/impacts/:id', async (req, res) => {
+  const { error } = await supabase
+    .from('impacts')
+    .delete()
+    .eq('id', req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ─── MEDIA LINKS ──────────────────────────────────────────────────────────────
+
+// GET media links for an activity
+app.get('/api/activities/:id/media', async (req, res) => {
+  const { data, error } = await supabase
+    .from('media_links')
+    .select('*')
+    .eq('activity_id', req.params.id)
+    .order('created_at', { ascending: true });
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+// POST new media link
+app.post('/api/media-links', async (req, res) => {
+  const { data, error } = await supabase
+    .from('media_links')
+    .insert(req.body)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+// DELETE media link
+app.delete('/api/media-links/:id', async (req, res) => {
+  const { error } = await supabase
+    .from('media_links')
+    .delete()
+    .eq('id', req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ─── ATTACHMENTS ──────────────────────────────────────────────────────────────
+
+// GET attachments for an activity
+app.get('/api/activities/:id/attachments', async (req, res) => {
+  const { data, error } = await supabase
+    .from('attachments')
+    .select('*')
+    .eq('activity_id', req.params.id)
+    .order('created_at', { ascending: true });
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+// POST new attachment record (after file uploaded to storage)
+app.post('/api/attachments', async (req, res) => {
+  const { data, error } = await supabase
+    .from('attachments')
+    .insert(req.body)
+    .select()
+    .single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+// DELETE attachment
+app.delete('/api/attachments/:id', async (req, res) => {
+  // First get the file path so we can delete from storage too
+  const { data: attachment, error: fetchError } = await supabase
+    .from('attachments')
+    .select('file_path')
+    .eq('id', req.params.id)
+    .single();
+  if (fetchError) return dbErr(res, fetchError);
+
+  // Delete from storage
+  await supabase.storage
+    .from('activity-attachments')
+    .remove([attachment.file_path]);
+
+  // Delete record
+  const { error } = await supabase
+    .from('attachments')
+    .delete()
+    .eq('id', req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ─── BUDGET SUMMARY ───────────────────────────────────────────────────────────
+
+// GET budget breakdown for a project
+app.get('/api/projects/:id/budget', async (req, res) => {
+  const { data: project, error: projError } = await supabase
+    .from('projects')
+    .select('budget_usd, title, code')
+    .eq('id', req.params.id)
+    .single();
+  if (projError) return dbErr(res, projError);
+
+  const { data: activities, error: actError } = await supabase
+    .from('indicators')
+    .select('id, name, budget_allocation')
+    .eq('project_id', req.params.id);
+  if (actError) return dbErr(res, actError);
+
+  const totalAllocated = activities.reduce((sum, a) => sum + (parseFloat(a.budget_allocation) || 0), 0);
+  const remaining = (parseFloat(project.budget_usd) || 0) - totalAllocated;
+  const percentUsed = project.budget_usd ? (totalAllocated / parseFloat(project.budget_usd)) * 100 : 0;
+
+  // Traffic light
+  let budgetStatus = 'green';
+  if (percentUsed >= 100) budgetStatus = 'red';
+  else if (percentUsed >= 85) budgetStatus = 'orange';
+
+  ok(res, {
+    project_title: project.title,
+    project_code: project.code,
+    total_budget: parseFloat(project.budget_usd) || 0,
+    total_allocated: totalAllocated,
+    remaining: remaining,
+    percent_used: Math.round(percentUsed),
+    budget_status: budgetStatus,
+    activities: activities.map(a => ({
+      id: a.id,
+      name: a.name,
+      budget_allocation: parseFloat(a.budget_allocation) || 0
+    }))
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`✓ MEAL API running on http://localhost:${PORT}`);
