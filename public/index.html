@@ -469,7 +469,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
       <div class="steps-bar">
         <div class="step active" id="st-0" onclick="goToStep(0)"><div class="step-num" id="sn-0">1</div><div class="step-label">Project Profile</div></div>
         <div class="step-div"></div>
-        <div class="step" id="st-1" onclick="goToStep(1)"><div class="step-num" id="sn-1">2</div><div class="step-label">Indicators</div></div>
+        <div class="step" id="st-1" onclick="goToStep(1)"><div class="step-num" id="sn-1">2</div><div class="step-label">Activities</div></div>
         <div class="step-div"></div>
         <div class="step" id="st-2" onclick="goToStep(2)"><div class="step-num" id="sn-2">3</div><div class="step-label">Milestones</div></div>
         <div class="step-div"></div>
@@ -522,11 +522,34 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
       </div>
 
       <div class="section-page" id="pg-1">
-        <div class="card">
-          <div class="card-header"><div class="card-icon" style="background:var(--green-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#0BBE45" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="card-title">Performance Indicators & Targets</div><div class="card-subtitle">Enter each indicator with baseline, target, and actual values</div></div><div style="margin-left:auto;"><button class="btn btn-primary btn-sm" onclick="addIndicator()">+ Add Indicator</button></div></div>
-          <div id="indicator-list"></div>
-        </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon" style="background:var(--green-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#0BBE45" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div>
+        <div class="card-title">Activities & Targets</div>
+        <div class="card-subtitle">Each activity has its own budget, result level, achievements, and verification sources</div>
       </div>
+      <div style="margin-left:auto;">
+        <button class="btn btn-primary btn-sm" onclick="addActivity()">+ Add Activity</button>
+      </div>
+    </div>
+    <!-- Budget summary strip — shows running balance -->
+    <div class="budget-summary-bar" id="budget-summary-bar" style="display:none;">
+      <div class="budget-row">
+        <span>Total Project Budget</span>
+        <span class="val" id="bsum-total">$0</span>
+      </div>
+      <div class="budget-bar-track">
+        <div class="budget-bar-fill" id="bsum-fill" style="width:0%;background:var(--green);"></div>
+      </div>
+      <div class="budget-row">
+        <span id="bsum-status">No activities budgeted yet</span>
+        <span class="val" id="bsum-remaining"></span>
+      </div>
+    </div>
+    <div id="activity-list"></div>
+  </div>
+</div>
 
       <div class="section-page" id="pg-2">
         <div class="card">
@@ -551,8 +574,8 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
           <div class="card-header"><div class="card-icon" style="background:var(--green-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#0BBE45" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="card-title">Review & Submit</div><div class="card-subtitle">Verify your entry before submitting to the DLCI MEAL database</div></div></div>
           <div class="review-strip">
             <div><div class="rev-item-label">Project</div><div class="rev-item-value" id="rev-title">—</div></div>
-            <div><div class="rev-item-label">Indicators</div><div class="rev-item-value" id="rev-ind">0</div></div>
-            <div><div class="rev-item-label">Milestones</div><div class="rev-item-value" id="rev-ms">0</div></div>
+            <div><div class="rev-item-label">Activities</div><div class="rev-item-value" id="rev-ind">0</div></div>
+            <div><div class="rev-item-label">Achievements</div><div class="rev-item-value" id="rev-ms">0</div></div>
             <div><div class="rev-item-label">Risks</div><div class="rev-item-value" id="rev-risk">0</div></div>
           </div>
           <div class="form-grid form-grid-2" style="margin-bottom:20px;">
@@ -709,16 +732,185 @@ function goToStep(n) {
   document.getElementById('btn-submit').style.display = n === totalSteps - 1 ? 'inline-flex' : 'none';
 }
 
-let indicators = [], milestones = [], risks = [];
-let indC = 0, msC = 0, riskC = 0;
+let activities = [], achievements = [], risks = [];
+let actC = 0, achC = 0, riskC = 0;
 
-function addIndicator() {
-  const id = indC++; indicators.push({ id }); renderIndicators();
+function addActivity() {
+  const id = actC++;
+  activities.push({ id, achievements: [] });
+  renderActivities();
 }
-function removeIndicator(id) {
-  indicators = indicators.filter(i => i.id !== id); renderIndicators();
+
+function removeActivity(id) {
+  activities = activities.filter(a => a.id !== id);
+  renderActivities();
 }
-function renderIndicators() {
+
+function addAchievementToActivity(actId) {
+  const act = activities.find(a => a.id === actId);
+  if (act) { act.achievements.push({ id: achC++ }); renderActivities(); }
+}
+
+function removeAchievementFromActivity(actId, achId) {
+  const act = activities.find(a => a.id === actId);
+  if (act) { act.achievements = act.achievements.filter(a => a.id !== achId); renderActivities(); }
+}
+
+function renderActivities() {
+  const el = document.getElementById('activity-list');
+  const projBudget = parseFloat(document.getElementById('proj-budget')?.value) || 0;
+
+  if (!activities.length) {
+    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No activities yet. Click "+ Add Activity" above.</div>';
+    document.getElementById('budget-summary-bar').style.display = 'none';
+    return;
+  }
+
+  // Calculate budget totals
+  const totalAllocated = activities.reduce((sum, act) => {
+    const val = parseFloat(document.getElementById('act-budget-' + act.id)?.value) || 0;
+    return sum + val;
+  }, 0);
+
+  // Update budget summary bar
+  if (projBudget > 0) {
+    const pct = Math.min((totalAllocated / projBudget) * 100, 100);
+    const remaining = projBudget - totalAllocated;
+    const bar = document.getElementById('budget-summary-bar');
+    const fill = document.getElementById('bsum-fill');
+    const status = document.getElementById('bsum-status');
+    const remEl = document.getElementById('bsum-remaining');
+    bar.style.display = 'block';
+    document.getElementById('bsum-total').textContent = '$' + projBudget.toLocaleString();
+    fill.style.width = pct + '%';
+    if (totalAllocated >= projBudget) {
+      fill.style.background = 'var(--red)';
+      status.textContent = '⚠ Over budget — allocated exceeds total';
+      status.style.color = 'var(--red)';
+      remEl.textContent = '-$' + Math.abs(remaining).toLocaleString();
+      remEl.style.color = 'var(--red)';
+    } else if (totalAllocated / projBudget >= 0.85) {
+      fill.style.background = 'var(--orange)';
+      status.textContent = '⚡ Approaching budget limit (85%+)';
+      status.style.color = 'var(--orange)';
+      remEl.textContent = '$' + remaining.toLocaleString() + ' remaining';
+      remEl.style.color = 'var(--orange)';
+    } else {
+      fill.style.background = 'var(--green)';
+      status.textContent = 'Budget on track — ' + Math.round(pct) + '% allocated';
+      status.style.color = 'var(--green)';
+      remEl.textContent = '$' + remaining.toLocaleString() + ' remaining';
+      remEl.style.color = 'var(--green)';
+    }
+  }
+
+  el.innerHTML = activities.map((act, idx) => `
+    <div class="activity-item">
+      <div class="activity-header">
+        <span class="activity-label">Activity ${idx + 1}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeActivity(${act.id})">Remove</button>
+      </div>
+
+      <!-- Activity profile -->
+      <div class="form-grid form-grid-2" style="margin-bottom:14px;">
+        <div class="field span-2"><label class="field-label">Activity Name <span class="req">*</span></label><input type="text" class="field-input" id="act-name-${act.id}" placeholder="e.g. Community training on sustainable land management — Turkana North"></div>
+        <div class="field"><label class="field-label">Result Level</label>
+          <select class="field-select" id="act-level-${act.id}">
+            <option value="output" selected>Output</option>
+            <option value="outcome">Outcome</option>
+          </select>
+        </div>
+        <div class="field"><label class="field-label">Unit of Measurement</label><input type="text" class="field-input" id="act-unit-${act.id}" placeholder="Number, %, Score, HH"></div>
+        <div class="field"><label class="field-label">Activity Budget (USD)</label>
+          <input type="number" class="field-input" id="act-budget-${act.id}" placeholder="0.00" min="0" step="0.01" oninput="renderActivities()">
+        </div>
+        <div class="field"><label class="field-label">Collection Frequency</label>
+          <select class="field-select" id="act-freq-${act.id}"><option>Monthly</option><option>Quarterly</option><option selected>Semi-annual</option><option>Annual</option></select>
+        </div>
+      </div>
+
+      <!-- Targets widget -->
+      <div class="ta-widget" style="margin-bottom:14px;">
+        <div class="ta-row"><div class="ta-lbl">Baseline</div><input type="number" class="ta-input" id="act-base-${act.id}" placeholder="Starting value"></div>
+        <div class="ta-row"><div class="ta-lbl">Target</div><input type="number" class="ta-input" id="act-tgt-${act.id}" placeholder="Target value" oninput="calcActPct(${act.id})"></div>
+        <div class="ta-row"><div class="ta-lbl">Actual</div><input type="number" class="ta-input" id="act-actual-${act.id}" placeholder="Actual achieved" oninput="calcActPct(${act.id})"></div>
+        <div class="pct-row"><div class="pct-bar-wrap-sm"><div class="pct-bar-fill-sm" id="act-pct-bar-${act.id}" style="width:0%"></div></div><div class="pct-val" id="act-pct-val-${act.id}">—</div></div>
+      </div>
+
+      <!-- Impact -->
+      <div class="impact-field" style="margin-bottom:14px;">
+        <div class="impact-label">Impact Statement</div>
+        <textarea class="field-textarea" id="act-impact-${act.id}" placeholder="Describe the expected or observed impact of this activity on the target community…" style="min-height:70px;background:transparent;border-color:rgba(139,92,246,0.2);"></textarea>
+      </div>
+
+      <!-- Achievements under this activity -->
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-family:var(--font-head);font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);">Achievements</span>
+          <button class="btn btn-yellow btn-sm" onclick="addAchievementToActivity(${act.id})">+ Add Achievement</button>
+        </div>
+        ${act.achievements.length ? act.achievements.map(ach => `
+          <div class="milestone-row">
+            <div style="color:var(--text-muted);font-size:14px;flex-shrink:0;">⠿</div>
+            <div class="ms-grid">
+              <input type="text" class="ms-input" id="ach-title-${ach.id}" placeholder="Achievement description">
+              <input type="date" class="ms-input" id="ach-date-${ach.id}">
+              <select class="ms-select" id="ach-status-${ach.id}">
+                <option value="not_started">Not started</option>
+                <option value="in_progress">In progress</option>
+                <option value="completed">Completed</option>
+                <option value="delayed">Delayed</option>
+              </select>
+              <input type="text" class="ms-input" id="ach-resp-${ach.id}" placeholder="Responsible">
+            </div>
+            <button class="btn btn-danger btn-sm" style="padding:6px 10px;flex-shrink:0;" onclick="removeAchievementFromActivity(${act.id},${ach.id})">✕</button>
+          </div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No achievements yet for this activity.</div>'}
+      </div>
+
+      <!-- Verification -->
+      <div class="verify-section">
+        <div class="verify-title">Verification & Data Sources</div>
+        <div class="verify-row">
+          <span style="font-size:11px;color:var(--text-muted);width:100px;flex-shrink:0;font-family:var(--font-head);text-transform:uppercase;letter-spacing:.04em;">Data Source</span>
+          <input type="text" class="verify-input" id="act-src-${act.id}" placeholder="e.g. KoboToolbox survey, Training registers, Attendance sheets">
+        </div>
+        <div class="verify-row">
+          <span style="font-size:11px;color:var(--text-muted);width:100px;flex-shrink:0;font-family:var(--font-head);text-transform:uppercase;letter-spacing:.04em;">Attach File</span>
+          <label class="verify-file-btn" for="act-file-${act.id}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <span id="act-file-name-${act.id}">Attach report or evidence</span>
+          </label>
+          <input type="file" class="verify-file-input" id="act-file-${act.id}" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png" onchange="updateFileName(${act.id})">
+        </div>
+        <div class="verify-row">
+          <span style="font-size:11px;color:var(--text-muted);width:100px;flex-shrink:0;font-family:var(--font-head);text-transform:uppercase;letter-spacing:.04em;">Media Link</span>
+          <input type="url" class="verify-input" id="act-media-${act.id}" placeholder="https:// — Google Drive, YouTube, Dropbox link to photos or videos">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function calcActPct(id) {
+  const t = parseFloat(document.getElementById('act-tgt-' + id)?.value) || 0;
+  const a = parseFloat(document.getElementById('act-actual-' + id)?.value) || 0;
+  const pctV = document.getElementById('act-pct-val-' + id);
+  const pctB = document.getElementById('act-pct-bar-' + id);
+  if (!t) { pctV.textContent = '—'; pctB.style.width = '0%'; return; }
+  const p = Math.round((a / t) * 100);
+  pctV.textContent = p + '%';
+  pctB.style.width = Math.min(p, 100) + '%';
+  const c = p >= 80 ? 'var(--green)' : p >= 50 ? 'var(--yellow)' : 'var(--maroon)';
+  pctV.style.color = c; pctB.style.background = c;
+}
+
+function updateFileName(actId) {
+  const input = document.getElementById('act-file-' + actId);
+  const label = document.getElementById('act-file-name-' + actId);
+  if (input.files.length > 0) {
+    label.textContent = input.files[0].name;
+    label.style.color = 'var(--green)';
+  }
+}
   const el = document.getElementById('indicator-list');
   if (!indicators.length) { el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No indicators yet. Click "+ Add Indicator" above.</div>'; return; }
   el.innerHTML = indicators.map((ind, idx) => `
@@ -792,8 +984,8 @@ function renderRisks() {
 function populateReview() {
   const title = document.getElementById('proj-title')?.value || '—';
   document.getElementById('rev-title').textContent = title.length > 20 ? title.slice(0,20)+'…' : title;
-  document.getElementById('rev-ind').textContent   = indicators.length;
-  document.getElementById('rev-ms').textContent    = milestones.length;
+  document.getElementById('rev-ind').textContent = activities.length;
+  document.getElementById('rev-ms').textContent  = achievements.length;
   document.getElementById('rev-risk').textContent  = risks.length;
   if (!document.getElementById('sub-date').value) document.getElementById('sub-date').value = new Date().toISOString().slice(0,10);
 }
@@ -1122,8 +1314,8 @@ function showToast(msg, type='') {
   t._tid = setTimeout(()=>t.classList.remove('show'), 3200);
 }
 
-renderIndicators(); renderMilestones(); renderRisks();
-addIndicator(); addMilestone(); addRisk();
+renderActivities(); renderRisks();
+addActivity(); addRisk();
 goToStep(0); checkApi(); loadDashboard();
 </script>
 </body>
