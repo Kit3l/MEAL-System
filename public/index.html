@@ -322,6 +322,34 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
 /* Impact field */
 .impact-field { background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.2); border-radius: var(--radius); padding: 12px 14px; margin-top: 12px; }
 .impact-label { font-family: var(--font-head); font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--purple); margin-bottom: 8px; }
+
+/* ── EDIT PANEL ── */
+.edit-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 900; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.edit-panel-overlay.show { opacity: 1; pointer-events: all; }
+.edit-panel { position: fixed; top: 0; right: 0; width: 620px; max-width: 100vw; height: 100vh; background: var(--bg-mid); border-left: 1px solid var(--border-strong); z-index: 950; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+.edit-panel.show { transform: translateX(0); }
+.edit-panel-header { padding: 22px 26px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--bg-card); }
+.edit-panel-title { font-family: var(--font-head); font-size: 16px; font-weight: 800; color: var(--text-primary); }
+.edit-panel-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.edit-panel-close { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; transition: all 0.14s; }
+.edit-panel-close:hover { background: var(--red-dim); border-color: rgba(224,82,82,0.3); color: var(--red); }
+.edit-panel-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.ep-tab { flex: 1; padding: 11px 14px; font-size: 12px; font-weight: 600; font-family: var(--font-head); color: var(--text-muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; text-transform: uppercase; letter-spacing: .06em; }
+.ep-tab:hover { color: var(--text-secondary); background: var(--surface); }
+.ep-tab.active { color: var(--green); border-bottom-color: var(--green); background: rgba(11,190,69,0.05); }
+.edit-panel-body { flex: 1; overflow-y: auto; padding: 22px 26px; }
+.edit-panel-footer { padding: 14px 26px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0; background: var(--bg-card); }
+.ep-section { display: none; }
+.ep-section.show { display: block; }
+.edit-ind-card { background: var(--bg-light); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px; border-left: 3px solid var(--green); }
+.edit-ind-name { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; line-height: 1.4; }
+.edit-ind-meta { display: flex; gap: 14px; font-size: 11px; color: var(--text-muted); margin-bottom: 12px; flex-wrap: wrap; }
+.edit-ind-meta span { background: var(--surface); border: 1px solid var(--border); border-radius: 100px; padding: 2px 9px; }
+.edit-ms-card { background: var(--bg-light); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+.edit-ms-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; }
+.edit-ms-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.new-act-card { background: var(--bg-light); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px; border-left: 4px solid var(--maroon); }
+.new-act-label { font-family: var(--font-head); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--maroon); margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -443,6 +471,9 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
           </button>
           <button class="btn btn-yellow" onclick="exportPDF()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Export PDF
+          </button>
+          <button class="btn btn-primary" onclick="openEditPanel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit Project
           </button>
           <button class="btn btn-ghost" onclick="showView('projects')">← Back</button>
         </div>
@@ -641,6 +672,72 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
 
   </div>
 </div>
+</div>
+
+<!-- ══ EDIT PANEL ══ -->
+<div class="edit-panel-overlay" id="edit-overlay" onclick="closeEditPanel()"></div>
+<div class="edit-panel" id="edit-panel">
+  <div class="edit-panel-header">
+    <div>
+      <div class="edit-panel-title">Edit Project</div>
+      <div class="edit-panel-sub" id="ep-project-name">—</div>
+    </div>
+    <button class="edit-panel-close" onclick="closeEditPanel()">✕</button>
+  </div>
+  <div class="edit-panel-tabs">
+    <button class="ep-tab active" onclick="switchEpTab(0)">Update Actuals</button>
+    <button class="ep-tab" onclick="switchEpTab(1)">Achievements</button>
+    <button class="ep-tab" onclick="switchEpTab(2)">Add Activity</button>
+  </div>
+  <div class="edit-panel-body">
+
+    <!-- Tab 0: Update indicator actuals -->
+    <div class="ep-section show" id="ep-tab-0">
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Update the actual values recorded for each activity indicator. Changes are saved directly to the DLCI database.</p>
+      <div id="ep-indicators-list"></div>
+    </div>
+
+    <!-- Tab 1: Update achievement statuses -->
+    <div class="ep-section" id="ep-tab-1">
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Update the status and completion details for each project achievement.</p>
+      <div id="ep-milestones-list"></div>
+    </div>
+
+    <!-- Tab 2: Add new activity -->
+    <div class="ep-section" id="ep-tab-2">
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Add a new activity to this project. It will be saved immediately to the DLCI database.</p>
+      <div class="new-act-card">
+        <div class="new-act-label">New Activity</div>
+        <div class="form-grid" style="gap:14px;">
+          <div class="field"><label class="field-label">Activity Name <span class="req">*</span></label><input type="text" class="field-input" id="ep-act-name" placeholder="e.g. Community training on land rights — Isiolo"></div>
+          <div class="form-grid form-grid-2" style="gap:12px;">
+            <div class="field"><label class="field-label">Result Level</label>
+              <select class="field-select" id="ep-act-level"><option value="output" selected>Output</option><option value="outcome">Outcome</option></select>
+            </div>
+            <div class="field"><label class="field-label">Unit of Measurement</label><input type="text" class="field-input" id="ep-act-unit" placeholder="Number, %, HH"></div>
+            <div class="field"><label class="field-label">Activity Budget (USD)</label><input type="number" class="field-input" id="ep-act-budget" placeholder="0.00" min="0" step="0.01"></div>
+            <div class="field"><label class="field-label">Data Source</label><input type="text" class="field-input" id="ep-act-src" placeholder="KoboToolbox, Registers…"></div>
+          </div>
+          <div class="ta-widget">
+            <div class="ta-row"><div class="ta-lbl">Baseline</div><input type="number" class="ta-input" id="ep-act-base" placeholder="Starting value"></div>
+            <div class="ta-row"><div class="ta-lbl">Target</div><input type="number" class="ta-input" id="ep-act-tgt" placeholder="Target value"></div>
+            <div class="ta-row"><div class="ta-lbl">Actual</div><input type="number" class="ta-input" id="ep-act-actual" placeholder="Actual achieved"></div>
+          </div>
+          <div class="impact-field">
+            <div class="impact-label">Impact Statement</div>
+            <textarea class="field-textarea" id="ep-act-impact" placeholder="Expected or observed impact…" style="min-height:60px;background:transparent;border-color:rgba(139,92,246,0.2);"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="edit-panel-footer">
+    <button class="btn btn-ghost" onclick="closeEditPanel()">Cancel</button>
+    <button class="btn btn-primary" id="ep-save-btn" onclick="saveEditPanel()">
+      <span id="ep-save-icon">✓</span> <span id="ep-save-label">Save Changes</span>
+    </button>
+  </div>
 </div>
 
 <!-- ══ DELETE MODAL ══ -->
@@ -1194,6 +1291,203 @@ async function viewProject(id) {
     const rc = s => s==='low'?'var(--green)':s==='medium'?'var(--yellow)':s==='high'?'var(--orange)':'var(--maroon)';
     document.getElementById('detail-risks').innerHTML = rks.length ? `<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;padding:0 14px 8px;border-bottom:1px solid var(--border);margin-bottom:8px;"><span style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-head);">Risk</span><span style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-head);">Likelihood</span><span style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-head);">Impact</span></div>`+rks.map(r=>`<div class="risk-item"><div style="color:var(--text-primary);font-weight:500;">${r.title||'—'}${r.mitigation?'<div style="font-size:11.5px;color:var(--text-muted);margin-top:3px;">Mitigation: '+r.mitigation+'</div>':''}</div><div style="color:${rc(r.likelihood)};font-weight:700;font-family:var(--font-head);font-size:12px;text-transform:capitalize;">${r.likelihood||'—'}</div><div style="color:${rc(r.impact)};font-weight:700;font-family:var(--font-head);font-size:12px;text-transform:capitalize;">${r.impact||'—'}</div></div>`).join('') : '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No risks recorded yet.</div>';
   } catch(e) { showToast('Could not load project: '+e.message, 'error'); }
+}
+
+// ── EDIT PANEL ──
+let epCurrentTab = 0;
+
+function openEditPanel() {
+  if (!currentProjectData) return showToast('No project loaded.', 'error');
+  const p = currentProjectData;
+  document.getElementById('ep-project-name').textContent = p.code ? `${p.code} — ${p.title}` : p.title || '—';
+  renderEpIndicators(p.indicators || []);
+  renderEpMilestones(p.milestones || []);
+  clearNewActivityForm();
+  switchEpTab(0);
+  document.getElementById('edit-panel').classList.add('show');
+  document.getElementById('edit-overlay').classList.add('show');
+}
+
+function closeEditPanel() {
+  document.getElementById('edit-panel').classList.remove('show');
+  document.getElementById('edit-overlay').classList.remove('show');
+}
+
+function switchEpTab(n) {
+  epCurrentTab = n;
+  document.querySelectorAll('.ep-tab').forEach((t, i) => t.classList.toggle('active', i === n));
+  document.querySelectorAll('.ep-section').forEach((s, i) => s.classList.toggle('show', i === n));
+  const labels = ['Save Changes', 'Save Changes', 'Add Activity'];
+  document.getElementById('ep-save-label').textContent = labels[n];
+}
+
+function renderEpIndicators(indicators) {
+  const el = document.getElementById('ep-indicators-list');
+  if (!indicators.length) {
+    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No activities / indicators recorded yet for this project.</div>';
+    return;
+  }
+  el.innerHTML = indicators.map((ind, idx) => {
+    const pct = ind.overall_target ? Math.round(((ind.overall_actual || 0) / ind.overall_target) * 100) : null;
+    const c = !pct ? 'var(--text-muted)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--maroon)';
+    return `<div class="edit-ind-card">
+      <div class="edit-ind-name">${ind.name || '—'}</div>
+      <div class="edit-ind-meta">
+        <span>${ind.result_level || 'output'}</span>
+        <span>${ind.unit_of_measurement || 'Number'}</span>
+        ${ind.data_source ? `<span>${ind.data_source}</span>` : ''}
+      </div>
+      <div class="form-grid form-grid-3" style="gap:10px;margin-bottom:10px;">
+        <div class="field">
+          <label class="field-label">Baseline</label>
+          <input type="number" class="field-input" id="ep-ind-base-${ind.id}" value="${ind.baseline_value ?? ''}" placeholder="—" style="font-size:13px;padding:8px 11px;">
+        </div>
+        <div class="field">
+          <label class="field-label">Target</label>
+          <input type="number" class="field-input" id="ep-ind-tgt-${ind.id}" value="${ind.overall_target ?? ''}" placeholder="—" style="font-size:13px;padding:8px 11px;" oninput="updateEpPct('${ind.id}')">
+        </div>
+        <div class="field">
+          <label class="field-label" style="color:var(--green);">Actual <span class="req">✎</span></label>
+          <input type="number" class="field-input" id="ep-ind-actual-${ind.id}" value="${ind.overall_actual ?? ''}" placeholder="Enter actual" style="font-size:13px;padding:8px 11px;border-color:rgba(11,190,69,0.3);" oninput="updateEpPct('${ind.id}')">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+          <div id="ep-pct-bar-${ind.id}" style="height:100%;border-radius:3px;width:${Math.min(pct||0,100)}%;background:${c};transition:width 0.3s,background 0.3s;"></div>
+        </div>
+        <span id="ep-pct-val-${ind.id}" style="font-family:var(--font-head);font-size:13px;font-weight:800;color:${c};min-width:40px;text-align:right;">${pct ? pct + '%' : '—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateEpPct(indId) {
+  const tgt = parseFloat(document.getElementById('ep-ind-tgt-' + indId)?.value) || 0;
+  const act = parseFloat(document.getElementById('ep-ind-actual-' + indId)?.value) || 0;
+  const bar = document.getElementById('ep-pct-bar-' + indId);
+  const val = document.getElementById('ep-pct-val-' + indId);
+  if (!tgt || !bar || !val) return;
+  const p = Math.round((act / tgt) * 100);
+  const c = p >= 80 ? 'var(--green)' : p >= 50 ? 'var(--yellow)' : 'var(--maroon)';
+  bar.style.width = Math.min(p, 100) + '%';
+  bar.style.background = c;
+  val.textContent = p + '%';
+  val.style.color = c;
+}
+
+function renderEpMilestones(milestones) {
+  const el = document.getElementById('ep-milestones-list');
+  if (!milestones.length) {
+    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No achievements recorded yet for this project.</div>';
+    return;
+  }
+  const statusOpts = [
+    { value: 'not_started', label: 'Not started' },
+    { value: 'in_progress', label: 'In progress' },
+    { value: 'completed',   label: 'Completed'   },
+    { value: 'delayed',     label: 'Delayed'      },
+    { value: 'cancelled',   label: 'Cancelled'    },
+  ];
+  el.innerHTML = milestones.map((ms, idx) => `
+    <div class="edit-ms-card">
+      <div class="edit-ms-title">${ms.title || '—'}</div>
+      <div class="edit-ms-meta">${ms.due_date ? 'Due: ' + ms.due_date : ''} ${ms.responsible ? '· ' + ms.responsible : ''}</div>
+      <div class="form-grid form-grid-2" style="gap:10px;">
+        <div class="field">
+          <label class="field-label" style="color:var(--yellow);">Status <span class="req">✎</span></label>
+          <select class="field-select" id="ep-ms-status-${ms.id}" style="font-size:13px;padding:8px 11px;border-color:rgba(255,204,41,0.3);">
+            ${statusOpts.map(o => `<option value="${o.value}"${ms.status === o.value ? ' selected' : ''}>${o.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Due Date</label>
+          <input type="date" class="field-input" id="ep-ms-date-${ms.id}" value="${ms.due_date || ''}" style="font-size:13px;padding:8px 11px;">
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function clearNewActivityForm() {
+  ['ep-act-name','ep-act-unit','ep-act-src','ep-act-impact'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['ep-act-budget','ep-act-base','ep-act-tgt','ep-act-actual'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const lvl = document.getElementById('ep-act-level');
+  if (lvl) lvl.value = 'output';
+}
+
+async function saveEditPanel() {
+  const btn = document.getElementById('ep-save-btn');
+  btn.disabled = true;
+  document.getElementById('ep-save-icon').innerHTML = '<span class="spinner"></span>';
+
+  try {
+    if (epCurrentTab === 0) {
+      // Save indicator actuals
+      const inds = currentProjectData?.indicators || [];
+      if (!inds.length) { showToast('No indicators to update.', 'error'); return; }
+      const updates = inds.map(ind => ({
+        id: ind.id,
+        baseline_value:  parseFloat(document.getElementById('ep-ind-base-'   + ind.id)?.value) ?? ind.baseline_value,
+        overall_target:  parseFloat(document.getElementById('ep-ind-tgt-'    + ind.id)?.value) ?? ind.overall_target,
+        overall_actual:  parseFloat(document.getElementById('ep-ind-actual-' + ind.id)?.value) ?? ind.overall_actual,
+      }));
+      const r = await apiPatch('/api/projects/' + currentProjectId + '/indicators', { updates });
+      if (!r.success) throw new Error(r.error || 'Failed to save actuals');
+      showToast('✓ Activity actuals updated!', 'ok');
+
+    } else if (epCurrentTab === 1) {
+      // Save achievement statuses
+      const ms = currentProjectData?.milestones || [];
+      if (!ms.length) { showToast('No achievements to update.', 'error'); return; }
+      const updates = ms.map(m => ({
+        id:       m.id,
+        status:   document.getElementById('ep-ms-status-' + m.id)?.value || m.status,
+        due_date: document.getElementById('ep-ms-date-'   + m.id)?.value || m.due_date,
+      }));
+      const r = await apiPatch('/api/projects/' + currentProjectId + '/milestones', { updates });
+      if (!r.success) throw new Error(r.error || 'Failed to save achievement statuses');
+      showToast('✓ Achievement statuses updated!', 'ok');
+
+    } else if (epCurrentTab === 2) {
+      // Add new activity
+      const name = document.getElementById('ep-act-name')?.value.trim();
+      if (!name) { showToast('Please enter an activity name.', 'error'); return; }
+      const newAct = {
+        name,
+        result_level:        document.getElementById('ep-act-level')?.value || 'output',
+        unit_of_measurement: document.getElementById('ep-act-unit')?.value  || 'Number',
+        data_source:         document.getElementById('ep-act-src')?.value,
+        budget_allocation:   parseFloat(document.getElementById('ep-act-budget')?.value)  || null,
+        baseline_value:      parseFloat(document.getElementById('ep-act-base')?.value)    || null,
+        overall_target:      parseFloat(document.getElementById('ep-act-tgt')?.value)     || null,
+        overall_actual:      parseFloat(document.getElementById('ep-act-actual')?.value)  || null,
+        impact:              document.getElementById('ep-act-impact')?.value,
+      };
+      const r = await apiPost('/api/projects/' + currentProjectId + '/indicators', newAct);
+      if (!r.success) throw new Error(r.error || 'Failed to add activity');
+      showToast('✓ New activity added!', 'ok');
+      clearNewActivityForm();
+    }
+
+    // Reload project detail to reflect changes
+    await viewProject(currentProjectId);
+    // Re-render edit panel with fresh data so it stays open with updated values
+    if (epCurrentTab !== 2) {
+      renderEpIndicators(currentProjectData?.indicators || []);
+      renderEpMilestones(currentProjectData?.milestones || []);
+    }
+
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('ep-save-icon').textContent = '✓';
+  }
 }
 
 // ── DELETE ──
