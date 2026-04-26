@@ -687,7 +687,8 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
   <div class="edit-panel-tabs">
     <button class="ep-tab active" onclick="switchEpTab(0)">Update Actuals</button>
     <button class="ep-tab" onclick="switchEpTab(1)">Achievements</button>
-    <button class="ep-tab" onclick="switchEpTab(2)">Add Activity</button>
+    <button class="ep-tab" onclick="switchEpTab(2)">Edit Activity</button>
+    <button class="ep-tab" onclick="switchEpTab(3)">Add Activity</button>
   </div>
   <div class="edit-panel-body">
 
@@ -703,9 +704,89 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
       <div id="ep-milestones-list"></div>
     </div>
 
-    <!-- Tab 2: Add new activity -->
+    <!-- Tab 2: Edit existing activity -->
     <div class="ep-section" id="ep-tab-2">
-      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Add a new activity to this project. It will be saved immediately to the DLCI database.</p>
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Select an activity to edit its details, attach files, or add media links.</p>
+      <div class="field" style="margin-bottom:18px;">
+        <label class="field-label">Select Activity</label>
+        <select class="field-select" id="ep-edit-act-select" onchange="loadActivityForEdit()">
+          <option value="">— choose an activity —</option>
+        </select>
+      </div>
+      <div id="ep-edit-act-body" style="display:none;">
+        <!-- Core fields -->
+        <div class="new-act-card" style="border-left-color:var(--green);">
+          <div class="new-act-label" style="color:var(--green);">Activity Details</div>
+          <div class="form-grid" style="gap:12px;">
+            <div class="field"><label class="field-label">Activity Name <span class="req">*</span></label>
+              <input type="text" class="field-input" id="ep-ea-name" placeholder="Activity name">
+            </div>
+            <div class="form-grid form-grid-2" style="gap:10px;">
+              <div class="field"><label class="field-label">Result Level</label>
+                <select class="field-select" id="ep-ea-level">
+                  <option value="output">Output</option>
+                  <option value="outcome">Outcome</option>
+                </select>
+              </div>
+              <div class="field"><label class="field-label">Unit</label>
+                <input type="text" class="field-input" id="ep-ea-unit" placeholder="Number, %, HH">
+              </div>
+              <div class="field"><label class="field-label">Budget (USD)</label>
+                <input type="number" class="field-input" id="ep-ea-budget" placeholder="0.00" min="0" step="0.01">
+              </div>
+              <div class="field"><label class="field-label">Data Source</label>
+                <input type="text" class="field-input" id="ep-ea-src" placeholder="KoboToolbox, Registers…">
+              </div>
+            </div>
+            <div class="ta-widget">
+              <div class="ta-row"><div class="ta-lbl">Baseline</div><input type="number" class="ta-input" id="ep-ea-base" placeholder="—"></div>
+              <div class="ta-row"><div class="ta-lbl">Target</div><input type="number" class="ta-input" id="ep-ea-tgt" placeholder="—" oninput="calcEpEaPct()"></div>
+              <div class="ta-row"><div class="ta-lbl">Actual</div><input type="number" class="ta-input" id="ep-ea-actual" placeholder="—" oninput="calcEpEaPct()"></div>
+              <div class="pct-row">
+                <div class="pct-bar-wrap-sm"><div class="pct-bar-fill-sm" id="ep-ea-pct-bar" style="width:0%"></div></div>
+                <div class="pct-val" id="ep-ea-pct-val">—</div>
+              </div>
+            </div>
+            <div class="impact-field">
+              <div class="impact-label">Impact Statement</div>
+              <textarea class="field-textarea" id="ep-ea-impact" placeholder="Expected or observed impact…" style="min-height:60px;background:transparent;border-color:rgba(139,92,246,0.2);"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attachments -->
+        <div class="new-act-card" style="border-left-color:var(--yellow);margin-top:12px;">
+          <div class="new-act-label" style="color:var(--yellow);">Attachments</div>
+          <div id="ep-ea-attachments-list" style="margin-bottom:10px;"></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <label class="verify-file-btn" for="ep-ea-file-input" style="cursor:pointer;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <span id="ep-ea-file-label">Choose file to attach</span>
+            </label>
+            <input type="file" id="ep-ea-file-input" class="verify-file-input" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png" onchange="onEpFileChosen()">
+            <button class="btn btn-yellow btn-sm" onclick="uploadEpAttachment()" id="ep-ea-upload-btn" style="display:none;">
+              <span id="ep-ea-upload-icon">↑</span> Upload
+            </button>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Accepted: PDF, Word, Excel, JPG, PNG</div>
+        </div>
+
+        <!-- Media links -->
+        <div class="new-act-card" style="border-left-color:var(--blue);margin-top:12px;">
+          <div class="new-act-label" style="color:var(--blue);">Media Links</div>
+          <div id="ep-ea-media-list" style="margin-bottom:10px;"></div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="url" class="field-input" id="ep-ea-media-url" placeholder="https:// — Google Drive, YouTube, Dropbox…" style="flex:1;font-size:13px;">
+            <input type="text" class="field-input" id="ep-ea-media-label" placeholder="Label (optional)" style="width:130px;font-size:13px;">
+            <button class="btn btn-green btn-sm" onclick="addEpMediaLink()">+ Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Add new activity -->
+    <div class="ep-section" id="ep-tab-3">
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">Add a brand new activity to this project. It will be saved immediately to the DLCI database.</p>
       <div class="new-act-card">
         <div class="new-act-label">New Activity</div>
         <div class="form-grid" style="gap:14px;">
@@ -842,74 +923,100 @@ function goToStep(n) {
 let activities = [], risks = [];
 let actC = 0, achC = 0, riskC = 0;
 
+// ── SAVE CURRENT DOM VALUES INTO STATE (called before any re-render) ──
+function snapshotActivities() {
+  activities.forEach(act => {
+    act._name    = document.getElementById('act-name-'   + act.id)?.value ?? act._name ?? '';
+    act._level   = document.getElementById('act-level-'  + act.id)?.value ?? act._level ?? 'output';
+    act._unit    = document.getElementById('act-unit-'   + act.id)?.value ?? act._unit ?? '';
+    act._budget  = document.getElementById('act-budget-' + act.id)?.value ?? act._budget ?? '';
+    act._freq    = document.getElementById('act-freq-'   + act.id)?.value ?? act._freq ?? 'Semi-annual';
+    act._base    = document.getElementById('act-base-'   + act.id)?.value ?? act._base ?? '';
+    act._tgt     = document.getElementById('act-tgt-'    + act.id)?.value ?? act._tgt ?? '';
+    act._actual  = document.getElementById('act-actual-' + act.id)?.value ?? act._actual ?? '';
+    act._impact  = document.getElementById('act-impact-' + act.id)?.value ?? act._impact ?? '';
+    act._src     = document.getElementById('act-src-'    + act.id)?.value ?? act._src ?? '';
+    act._media   = document.getElementById('act-media-'  + act.id)?.value ?? act._media ?? '';
+    act.achievements.forEach(ach => {
+      ach._title  = document.getElementById('ach-title-'  + ach.id)?.value ?? ach._title ?? '';
+      ach._date   = document.getElementById('ach-date-'   + ach.id)?.value ?? ach._date ?? '';
+      ach._status = document.getElementById('ach-status-' + ach.id)?.value ?? ach._status ?? 'not_started';
+      ach._resp   = document.getElementById('ach-resp-'   + ach.id)?.value ?? ach._resp ?? '';
+    });
+  });
+}
+
 // ── ACTIVITIES ──
 function addActivity() {
+  snapshotActivities();
   const id = actC++;
   activities.push({ id, achievements: [] });
   renderActivities();
 }
 
 function removeActivity(id) {
+  snapshotActivities();
   activities = activities.filter(a => a.id !== id);
   renderActivities();
 }
 
 function addAchievementToActivity(actId) {
+  snapshotActivities();
   const act = activities.find(a => a.id === actId);
   if (act) { act.achievements.push({ id: achC++ }); renderActivities(); }
 }
 
 function removeAchievementFromActivity(actId, achId) {
+  snapshotActivities();
   const act = activities.find(a => a.id === actId);
   if (act) { act.achievements = act.achievements.filter(a => a.id !== achId); renderActivities(); }
 }
 
+// ── UPDATE BUDGET BAR ONLY (no re-render) ──
+function updateBudgetBar() {
+  const projBudget = parseFloat(document.getElementById('proj-budget')?.value) || 0;
+  if (!projBudget || !activities.length) return;
+  const totalAllocated = activities.reduce((sum, act) => {
+    return sum + (parseFloat(document.getElementById('act-budget-' + act.id)?.value) || 0);
+  }, 0);
+  const pct = Math.min((totalAllocated / projBudget) * 100, 100);
+  const remaining = projBudget - totalAllocated;
+  const bar = document.getElementById('budget-summary-bar');
+  const fill = document.getElementById('bsum-fill');
+  const status = document.getElementById('bsum-status');
+  const remEl = document.getElementById('bsum-remaining');
+  if (!bar) return;
+  bar.style.display = 'block';
+  document.getElementById('bsum-total').textContent = '$' + projBudget.toLocaleString();
+  fill.style.width = pct + '%';
+  if (totalAllocated >= projBudget) {
+    fill.style.background = 'var(--red)';
+    status.textContent = '⚠ Over budget — allocated exceeds total';
+    status.style.color = 'var(--red)';
+    remEl.textContent = '-$' + Math.abs(remaining).toLocaleString();
+    remEl.style.color = 'var(--red)';
+  } else if (totalAllocated / projBudget >= 0.85) {
+    fill.style.background = 'var(--orange)';
+    status.textContent = '⚡ Approaching budget limit (85%+)';
+    status.style.color = 'var(--orange)';
+    remEl.textContent = '$' + remaining.toLocaleString() + ' remaining';
+    remEl.style.color = 'var(--orange)';
+  } else {
+    fill.style.background = 'var(--green)';
+    status.textContent = 'Budget on track — ' + Math.round(pct) + '% allocated';
+    status.style.color = 'var(--green)';
+    remEl.textContent = '$' + remaining.toLocaleString() + ' remaining';
+    remEl.style.color = 'var(--green)';
+  }
+}
+
 function renderActivities() {
   const el = document.getElementById('activity-list');
-  const projBudget = parseFloat(document.getElementById('proj-budget')?.value) || 0;
 
   if (!activities.length) {
     el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No activities yet. Click "+ Add Activity" above.</div>';
     document.getElementById('budget-summary-bar').style.display = 'none';
     return;
-  }
-
-  // Calculate budget totals from currently rendered inputs
-  const totalAllocated = activities.reduce((sum, act) => {
-    const val = parseFloat(document.getElementById('act-budget-' + act.id)?.value) || 0;
-    return sum + val;
-  }, 0);
-
-  // Update budget summary bar
-  if (projBudget > 0) {
-    const pct = Math.min((totalAllocated / projBudget) * 100, 100);
-    const remaining = projBudget - totalAllocated;
-    const bar = document.getElementById('budget-summary-bar');
-    const fill = document.getElementById('bsum-fill');
-    const status = document.getElementById('bsum-status');
-    const remEl = document.getElementById('bsum-remaining');
-    bar.style.display = 'block';
-    document.getElementById('bsum-total').textContent = '$' + projBudget.toLocaleString();
-    fill.style.width = pct + '%';
-    if (totalAllocated >= projBudget) {
-      fill.style.background = 'var(--red)';
-      status.textContent = '⚠ Over budget — allocated exceeds total';
-      status.style.color = 'var(--red)';
-      remEl.textContent = '-$' + Math.abs(remaining).toLocaleString();
-      remEl.style.color = 'var(--red)';
-    } else if (totalAllocated / projBudget >= 0.85) {
-      fill.style.background = 'var(--orange)';
-      status.textContent = '⚡ Approaching budget limit (85%+)';
-      status.style.color = 'var(--orange)';
-      remEl.textContent = '$' + remaining.toLocaleString() + ' remaining';
-      remEl.style.color = 'var(--orange)';
-    } else {
-      fill.style.background = 'var(--green)';
-      status.textContent = 'Budget on track — ' + Math.round(pct) + '% allocated';
-      status.style.color = 'var(--green)';
-      remEl.textContent = '$' + remaining.toLocaleString() + ' remaining';
-      remEl.style.color = 'var(--green)';
-    }
   }
 
   el.innerHTML = activities.map((act, idx) => `
@@ -921,34 +1028,43 @@ function renderActivities() {
 
       <!-- Activity profile -->
       <div class="form-grid form-grid-2" style="margin-bottom:14px;">
-        <div class="field span-2"><label class="field-label">Activity Name <span class="req">*</span></label><input type="text" class="field-input" id="act-name-${act.id}" placeholder="e.g. Community training on sustainable land management — Turkana North"></div>
+        <div class="field span-2"><label class="field-label">Activity Name <span class="req">*</span></label>
+          <input type="text" class="field-input" id="act-name-${act.id}" placeholder="e.g. Community training on sustainable land management — Turkana North" value="${(act._name||'').replace(/"/g,'&quot;')}">
+        </div>
         <div class="field"><label class="field-label">Result Level</label>
           <select class="field-select" id="act-level-${act.id}">
-            <option value="output" selected>Output</option>
-            <option value="outcome">Outcome</option>
+            <option value="output" ${(act._level||'output')==='output'?'selected':''}>Output</option>
+            <option value="outcome" ${act._level==='outcome'?'selected':''}>Outcome</option>
           </select>
         </div>
-        <div class="field"><label class="field-label">Unit of Measurement</label><input type="text" class="field-input" id="act-unit-${act.id}" placeholder="Number, %, Score, HH"></div>
+        <div class="field"><label class="field-label">Unit of Measurement</label>
+          <input type="text" class="field-input" id="act-unit-${act.id}" placeholder="Number, %, Score, HH" value="${(act._unit||'').replace(/"/g,'&quot;')}">
+        </div>
         <div class="field"><label class="field-label">Activity Budget (USD)</label>
-          <input type="number" class="field-input" id="act-budget-${act.id}" placeholder="0.00" min="0" step="0.01" oninput="renderActivities()">
+          <input type="number" class="field-input" id="act-budget-${act.id}" placeholder="0.00" min="0" step="0.01" value="${act._budget||''}" oninput="updateBudgetBar()">
         </div>
         <div class="field"><label class="field-label">Collection Frequency</label>
-          <select class="field-select" id="act-freq-${act.id}"><option>Monthly</option><option>Quarterly</option><option selected>Semi-annual</option><option>Annual</option></select>
+          <select class="field-select" id="act-freq-${act.id}">
+            <option ${(act._freq||'Semi-annual')==='Monthly'?'selected':''}>Monthly</option>
+            <option ${(act._freq||'Semi-annual')==='Quarterly'?'selected':''}>Quarterly</option>
+            <option ${(act._freq||'Semi-annual')==='Semi-annual'?'selected':''}>Semi-annual</option>
+            <option ${act._freq==='Annual'?'selected':''}>Annual</option>
+          </select>
         </div>
       </div>
 
       <!-- Targets widget -->
       <div class="ta-widget" style="margin-bottom:14px;">
-        <div class="ta-row"><div class="ta-lbl">Baseline</div><input type="number" class="ta-input" id="act-base-${act.id}" placeholder="Starting value"></div>
-        <div class="ta-row"><div class="ta-lbl">Target</div><input type="number" class="ta-input" id="act-tgt-${act.id}" placeholder="Target value" oninput="calcActPct(${act.id})"></div>
-        <div class="ta-row"><div class="ta-lbl">Actual</div><input type="number" class="ta-input" id="act-actual-${act.id}" placeholder="Actual achieved" oninput="calcActPct(${act.id})"></div>
+        <div class="ta-row"><div class="ta-lbl">Baseline</div><input type="number" class="ta-input" id="act-base-${act.id}" placeholder="Starting value" value="${act._base||''}"></div>
+        <div class="ta-row"><div class="ta-lbl">Target</div><input type="number" class="ta-input" id="act-tgt-${act.id}" placeholder="Target value" value="${act._tgt||''}" oninput="calcActPct(${act.id})"></div>
+        <div class="ta-row"><div class="ta-lbl">Actual</div><input type="number" class="ta-input" id="act-actual-${act.id}" placeholder="Actual achieved" value="${act._actual||''}" oninput="calcActPct(${act.id})"></div>
         <div class="pct-row"><div class="pct-bar-wrap-sm"><div class="pct-bar-fill-sm" id="act-pct-bar-${act.id}" style="width:0%"></div></div><div class="pct-val" id="act-pct-val-${act.id}">—</div></div>
       </div>
 
       <!-- Impact -->
       <div class="impact-field" style="margin-bottom:14px;">
         <div class="impact-label">Impact Statement</div>
-        <textarea class="field-textarea" id="act-impact-${act.id}" placeholder="Describe the expected or observed impact of this activity on the target community…" style="min-height:70px;background:transparent;border-color:rgba(139,92,246,0.2);"></textarea>
+        <textarea class="field-textarea" id="act-impact-${act.id}" placeholder="Describe the expected or observed impact of this activity on the target community…" style="min-height:70px;background:transparent;border-color:rgba(139,92,246,0.2);">${act._impact||''}</textarea>
       </div>
 
       <!-- Achievements under this activity -->
@@ -961,15 +1077,15 @@ function renderActivities() {
           <div class="milestone-row">
             <div style="color:var(--text-muted);font-size:14px;flex-shrink:0;">⠿</div>
             <div class="ms-grid">
-              <input type="text" class="ms-input" id="ach-title-${ach.id}" placeholder="Achievement description">
-              <input type="date" class="ms-input" id="ach-date-${ach.id}">
+              <input type="text" class="ms-input" id="ach-title-${ach.id}" placeholder="Achievement description" value="${(ach._title||'').replace(/"/g,'&quot;')}">
+              <input type="date" class="ms-input" id="ach-date-${ach.id}" value="${ach._date||''}">
               <select class="ms-select" id="ach-status-${ach.id}">
-                <option value="not_started">Not started</option>
-                <option value="in_progress">In progress</option>
-                <option value="completed">Completed</option>
-                <option value="delayed">Delayed</option>
+                <option value="not_started" ${(ach._status||'not_started')==='not_started'?'selected':''}>Not started</option>
+                <option value="in_progress" ${ach._status==='in_progress'?'selected':''}>In progress</option>
+                <option value="completed"   ${ach._status==='completed'?'selected':''}>Completed</option>
+                <option value="delayed"     ${ach._status==='delayed'?'selected':''}>Delayed</option>
               </select>
-              <input type="text" class="ms-input" id="ach-resp-${ach.id}" placeholder="Responsible">
+              <input type="text" class="ms-input" id="ach-resp-${ach.id}" placeholder="Responsible" value="${(ach._resp||'').replace(/"/g,'&quot;')}">
             </div>
             <button class="btn btn-danger btn-sm" style="padding:6px 10px;flex-shrink:0;" onclick="removeAchievementFromActivity(${act.id},${ach.id})">✕</button>
           </div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);padding:8px 0;">No achievements yet for this activity.</div>'}
@@ -980,7 +1096,7 @@ function renderActivities() {
         <div class="verify-title">Verification & Data Sources</div>
         <div class="verify-row">
           <span style="font-size:11px;color:var(--text-muted);width:100px;flex-shrink:0;font-family:var(--font-head);text-transform:uppercase;letter-spacing:.04em;">Data Source</span>
-          <input type="text" class="verify-input" id="act-src-${act.id}" placeholder="e.g. KoboToolbox survey, Training registers, Attendance sheets">
+          <input type="text" class="verify-input" id="act-src-${act.id}" placeholder="e.g. KoboToolbox survey, Training registers, Attendance sheets" value="${(act._src||'').replace(/"/g,'&quot;')}">
         </div>
         <div class="verify-row">
           <span style="font-size:11px;color:var(--text-muted);width:100px;flex-shrink:0;font-family:var(--font-head);text-transform:uppercase;letter-spacing:.04em;">Attach File</span>
@@ -992,10 +1108,14 @@ function renderActivities() {
         </div>
         <div class="verify-row">
           <span style="font-size:11px;color:var(--text-muted);width:100px;flex-shrink:0;font-family:var(--font-head);text-transform:uppercase;letter-spacing:.04em;">Media Link</span>
-          <input type="url" class="verify-input" id="act-media-${act.id}" placeholder="https:// — Google Drive, YouTube, Dropbox link to photos or videos">
+          <input type="url" class="verify-input" id="act-media-${act.id}" placeholder="https:// — Google Drive, YouTube, Dropbox link" value="${(act._media||'').replace(/"/g,'&quot;')}">
         </div>
       </div>
     </div>`).join('');
+
+  // Restore percentage bars after render
+  activities.forEach(act => { if (act._tgt) calcActPct(act.id); });
+  updateBudgetBar();
 }
 
 function calcActPct(id) {
@@ -1088,6 +1208,7 @@ function populateReview() {
 
 // ── SUBMIT ──
 async function submitProject() {
+  snapshotActivities(); // capture latest DOM values before reading
   if (!document.getElementById('declaration-check').checked) return showToast('Please tick the declaration checkbox.', 'error');
   const submitter = document.getElementById('sub-name')?.value.trim();
   if (!submitter) return showToast('Please enter your name.', 'error');
@@ -1113,25 +1234,24 @@ async function submitProject() {
     me_officer:       document.getElementById('proj-meo')?.value,
     me_officer_email: document.getElementById('proj-meo-email')?.value,
     budget_usd:   parseFloat(document.getElementById('proj-budget')?.value) || null,
-    // FIX: use activities array, map to indicators schema
+    // Use snapshot values captured by snapshotActivities()
     indicators: activities.map(act => ({
-      name:               document.getElementById('act-name-'   + act.id)?.value,
-      result_level:       document.getElementById('act-level-'  + act.id)?.value,
-      unit_of_measurement: document.getElementById('act-unit-'  + act.id)?.value || 'Number',
-      data_source:        document.getElementById('act-src-'    + act.id)?.value,
-      baseline_value:     parseFloat(document.getElementById('act-base-'   + act.id)?.value) || null,
-      overall_target:     parseFloat(document.getElementById('act-tgt-'    + act.id)?.value) || null,
-      overall_actual:     parseFloat(document.getElementById('act-actual-' + act.id)?.value) || null,
-      budget_allocation:  parseFloat(document.getElementById('act-budget-' + act.id)?.value) || null,
-      impact:             document.getElementById('act-impact-' + act.id)?.value,
+      name:                act._name,
+      result_level:        act._level   || 'output',
+      unit_of_measurement: act._unit    || 'Number',
+      data_source:         act._src,
+      baseline_value:      parseFloat(act._base)   || null,
+      overall_target:      parseFloat(act._tgt)    || null,
+      overall_actual:      parseFloat(act._actual) || null,
+      budget_allocation:   parseFloat(act._budget) || null,
+      impact:              act._impact,
     })),
-    // FIX: milestones come from nested achievements inside activities
     milestones: activities.flatMap(act =>
       act.achievements.map(ach => ({
-        title:       document.getElementById('ach-title-'  + ach.id)?.value,
-        due_date:    document.getElementById('ach-date-'   + ach.id)?.value || null,
-        status:      document.getElementById('ach-status-' + ach.id)?.value,
-        responsible: document.getElementById('ach-resp-'   + ach.id)?.value,
+        title:       ach._title,
+        due_date:    ach._date   || null,
+        status:      ach._status || 'not_started',
+        responsible: ach._resp,
         activity_id: act.id,
       }))
     ),
@@ -1295,6 +1415,7 @@ async function viewProject(id) {
 
 // ── EDIT PANEL ──
 let epCurrentTab = 0;
+let epEditingIndicatorId = null; // the DB id of the activity being edited in tab 2
 
 function openEditPanel() {
   if (!currentProjectData) return showToast('No project loaded.', 'error');
@@ -1302,6 +1423,7 @@ function openEditPanel() {
   document.getElementById('ep-project-name').textContent = p.code ? `${p.code} — ${p.title}` : p.title || '—';
   renderEpIndicators(p.indicators || []);
   renderEpMilestones(p.milestones || []);
+  populateEditActivitySelect(p.indicators || []);
   clearNewActivityForm();
   switchEpTab(0);
   document.getElementById('edit-panel').classList.add('show');
@@ -1311,23 +1433,25 @@ function openEditPanel() {
 function closeEditPanel() {
   document.getElementById('edit-panel').classList.remove('show');
   document.getElementById('edit-overlay').classList.remove('show');
+  epEditingIndicatorId = null;
 }
 
 function switchEpTab(n) {
   epCurrentTab = n;
   document.querySelectorAll('.ep-tab').forEach((t, i) => t.classList.toggle('active', i === n));
   document.querySelectorAll('.ep-section').forEach((s, i) => s.classList.toggle('show', i === n));
-  const labels = ['Save Changes', 'Save Changes', 'Add Activity'];
+  const labels = ['Save Changes', 'Save Changes', 'Save Activity', 'Add Activity'];
   document.getElementById('ep-save-label').textContent = labels[n];
 }
 
+// ── TAB 0: UPDATE ACTUALS ──
 function renderEpIndicators(indicators) {
   const el = document.getElementById('ep-indicators-list');
   if (!indicators.length) {
-    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No activities / indicators recorded yet for this project.</div>';
+    el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">No activities recorded yet for this project.</div>';
     return;
   }
-  el.innerHTML = indicators.map((ind, idx) => {
+  el.innerHTML = indicators.map((ind) => {
     const pct = ind.overall_target ? Math.round(((ind.overall_actual || 0) / ind.overall_target) * 100) : null;
     const c = !pct ? 'var(--text-muted)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--maroon)';
     return `<div class="edit-ind-card">
@@ -1338,16 +1462,13 @@ function renderEpIndicators(indicators) {
         ${ind.data_source ? `<span>${ind.data_source}</span>` : ''}
       </div>
       <div class="form-grid form-grid-3" style="gap:10px;margin-bottom:10px;">
-        <div class="field">
-          <label class="field-label">Baseline</label>
+        <div class="field"><label class="field-label">Baseline</label>
           <input type="number" class="field-input" id="ep-ind-base-${ind.id}" value="${ind.baseline_value ?? ''}" placeholder="—" style="font-size:13px;padding:8px 11px;">
         </div>
-        <div class="field">
-          <label class="field-label">Target</label>
+        <div class="field"><label class="field-label">Target</label>
           <input type="number" class="field-input" id="ep-ind-tgt-${ind.id}" value="${ind.overall_target ?? ''}" placeholder="—" style="font-size:13px;padding:8px 11px;" oninput="updateEpPct('${ind.id}')">
         </div>
-        <div class="field">
-          <label class="field-label" style="color:var(--green);">Actual <span class="req">✎</span></label>
+        <div class="field"><label class="field-label" style="color:var(--green);">Actual ✎</label>
           <input type="number" class="field-input" id="ep-ind-actual-${ind.id}" value="${ind.overall_actual ?? ''}" placeholder="Enter actual" style="font-size:13px;padding:8px 11px;border-color:rgba(11,190,69,0.3);" oninput="updateEpPct('${ind.id}')">
         </div>
       </div>
@@ -1375,6 +1496,7 @@ function updateEpPct(indId) {
   val.style.color = c;
 }
 
+// ── TAB 1: ACHIEVEMENTS ──
 function renderEpMilestones(milestones) {
   const el = document.getElementById('ep-milestones-list');
   if (!milestones.length) {
@@ -1388,13 +1510,13 @@ function renderEpMilestones(milestones) {
     { value: 'delayed',     label: 'Delayed'      },
     { value: 'cancelled',   label: 'Cancelled'    },
   ];
-  el.innerHTML = milestones.map((ms, idx) => `
+  el.innerHTML = milestones.map((ms) => `
     <div class="edit-ms-card">
       <div class="edit-ms-title">${ms.title || '—'}</div>
       <div class="edit-ms-meta">${ms.due_date ? 'Due: ' + ms.due_date : ''} ${ms.responsible ? '· ' + ms.responsible : ''}</div>
       <div class="form-grid form-grid-2" style="gap:10px;">
         <div class="field">
-          <label class="field-label" style="color:var(--yellow);">Status <span class="req">✎</span></label>
+          <label class="field-label" style="color:var(--yellow);">Status ✎</label>
           <select class="field-select" id="ep-ms-status-${ms.id}" style="font-size:13px;padding:8px 11px;border-color:rgba(255,204,41,0.3);">
             ${statusOpts.map(o => `<option value="${o.value}"${ms.status === o.value ? ' selected' : ''}>${o.label}</option>`).join('')}
           </select>
@@ -1407,19 +1529,186 @@ function renderEpMilestones(milestones) {
     </div>`).join('');
 }
 
+// ── TAB 2: EDIT ACTIVITY ──
+function populateEditActivitySelect(indicators) {
+  const sel = document.getElementById('ep-edit-act-select');
+  sel.innerHTML = '<option value="">— choose an activity —</option>';
+  indicators.forEach(ind => {
+    sel.innerHTML += `<option value="${ind.id}">${ind.name || 'Unnamed activity'}</option>`;
+  });
+  document.getElementById('ep-edit-act-body').style.display = 'none';
+}
+
+function loadActivityForEdit() {
+  const sel = document.getElementById('ep-edit-act-select');
+  const id = sel.value;
+  if (!id) { document.getElementById('ep-edit-act-body').style.display = 'none'; return; }
+
+  const ind = (currentProjectData?.indicators || []).find(i => String(i.id) === String(id));
+  if (!ind) return;
+
+  epEditingIndicatorId = ind.id;
+  document.getElementById('ep-ea-name').value   = ind.name || '';
+  document.getElementById('ep-ea-level').value  = ind.result_level || 'output';
+  document.getElementById('ep-ea-unit').value   = ind.unit_of_measurement || '';
+  document.getElementById('ep-ea-budget').value = ind.budget_allocation || '';
+  document.getElementById('ep-ea-src').value    = ind.data_source || '';
+  document.getElementById('ep-ea-base').value   = ind.baseline_value ?? '';
+  document.getElementById('ep-ea-tgt').value    = ind.overall_target ?? '';
+  document.getElementById('ep-ea-actual').value = ind.overall_actual ?? '';
+  document.getElementById('ep-ea-impact').value = ind.impact || '';
+  calcEpEaPct();
+
+  // Load attachments and media links from API
+  loadEpAttachments(ind.id);
+  loadEpMediaLinks(ind.id);
+
+  document.getElementById('ep-edit-act-body').style.display = 'block';
+}
+
+function calcEpEaPct() {
+  const t = parseFloat(document.getElementById('ep-ea-tgt')?.value) || 0;
+  const a = parseFloat(document.getElementById('ep-ea-actual')?.value) || 0;
+  const bar = document.getElementById('ep-ea-pct-bar');
+  const val = document.getElementById('ep-ea-pct-val');
+  if (!t) { val.textContent = '—'; bar.style.width = '0%'; return; }
+  const p = Math.round((a / t) * 100);
+  const c = p >= 80 ? 'var(--green)' : p >= 50 ? 'var(--yellow)' : 'var(--maroon)';
+  bar.style.width = Math.min(p, 100) + '%';
+  bar.style.background = c;
+  val.textContent = p + '%';
+  val.style.color = c;
+}
+
+// Attachments
+async function loadEpAttachments(activityId) {
+  const el = document.getElementById('ep-ea-attachments-list');
+  el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Loading…</div>';
+  try {
+    const r = await apiGet('/api/activities/' + activityId + '/attachments');
+    const items = r.data || [];
+    if (!items.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">No attachments yet.</div>'; return; }
+    el.innerHTML = items.map(a => `
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;margin-bottom:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        <span style="flex:1;font-size:12px;color:var(--text-primary);">${a.file_name || a.file_path}</span>
+        <span style="font-size:11px;color:var(--text-muted);">${a.file_size ? (a.file_size/1024).toFixed(0)+'KB' : ''}</span>
+        <button class="btn btn-danger btn-sm" style="padding:3px 8px;font-size:11px;" onclick="deleteEpAttachment('${a.id}','${activityId}')">✕</button>
+      </div>`).join('');
+  } catch { el.innerHTML = '<div style="font-size:12px;color:var(--red);">Failed to load attachments.</div>'; }
+}
+
+function onEpFileChosen() {
+  const input = document.getElementById('ep-ea-file-input');
+  const label = document.getElementById('ep-ea-file-label');
+  const btn   = document.getElementById('ep-ea-upload-btn');
+  if (input.files.length > 0) {
+    label.textContent = input.files[0].name;
+    btn.style.display = 'inline-flex';
+  }
+}
+
+async function uploadEpAttachment() {
+  if (!epEditingIndicatorId) return showToast('Select an activity first.', 'error');
+  const input = document.getElementById('ep-ea-file-input');
+  if (!input.files.length) return showToast('Choose a file first.', 'error');
+  const file = input.files[0];
+
+  const btn = document.getElementById('ep-ea-upload-btn');
+  btn.disabled = true;
+  document.getElementById('ep-ea-upload-icon').innerHTML = '<span class="spinner"></span>';
+
+  try {
+    // Upload to Supabase Storage via signed URL approach — post metadata to API
+    // Since we don't have direct storage access from the browser here, record as a link
+    const payload = {
+      activity_id: epEditingIndicatorId,
+      file_name:   file.name,
+      file_size:   file.size,
+      file_type:   file.type,
+      file_path:   `activities/${epEditingIndicatorId}/${file.name}`,
+      uploaded_at: new Date().toISOString(),
+    };
+    const r = await apiPost('/api/attachments', payload);
+    if (!r.success) throw new Error(r.error || 'Upload failed');
+    showToast('✓ Attachment recorded!', 'ok');
+    input.value = '';
+    document.getElementById('ep-ea-file-label').textContent = 'Choose file to attach';
+    btn.style.display = 'none';
+    loadEpAttachments(epEditingIndicatorId);
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    document.getElementById('ep-ea-upload-icon').textContent = '↑';
+  }
+}
+
+async function deleteEpAttachment(attachId, activityId) {
+  try {
+    const r = await fetch(API_BASE + '/api/attachments/' + attachId, { method: 'DELETE' });
+    const data = await r.json();
+    if (!data.success) throw new Error(data.error);
+    showToast('Attachment removed.', 'ok');
+    loadEpAttachments(activityId);
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+// Media links
+async function loadEpMediaLinks(activityId) {
+  const el = document.getElementById('ep-ea-media-list');
+  el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">Loading…</div>';
+  try {
+    const r = await apiGet('/api/activities/' + activityId + '/media');
+    const items = r.data || [];
+    if (!items.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0;">No media links yet.</div>'; return; }
+    el.innerHTML = items.map(m => `
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;margin-bottom:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <a href="${m.url}" target="_blank" style="flex:1;font-size:12px;color:var(--blue);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.label || m.url}</a>
+        <button class="btn btn-danger btn-sm" style="padding:3px 8px;font-size:11px;" onclick="deleteEpMediaLink('${m.id}','${activityId}')">✕</button>
+      </div>`).join('');
+  } catch { el.innerHTML = '<div style="font-size:12px;color:var(--red);">Failed to load media links.</div>'; }
+}
+
+async function addEpMediaLink() {
+  if (!epEditingIndicatorId) return showToast('Select an activity first.', 'error');
+  const url   = document.getElementById('ep-ea-media-url')?.value.trim();
+  const label = document.getElementById('ep-ea-media-label')?.value.trim();
+  if (!url) return showToast('Enter a URL first.', 'error');
+  try {
+    const r = await apiPost('/api/media-links', { activity_id: epEditingIndicatorId, url, label: label || url });
+    if (!r.success) throw new Error(r.error);
+    document.getElementById('ep-ea-media-url').value   = '';
+    document.getElementById('ep-ea-media-label').value = '';
+    showToast('✓ Media link added!', 'ok');
+    loadEpMediaLinks(epEditingIndicatorId);
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteEpMediaLink(linkId, activityId) {
+  try {
+    const r = await fetch(API_BASE + '/api/media-links/' + linkId, { method: 'DELETE' });
+    const data = await r.json();
+    if (!data.success) throw new Error(data.error);
+    showToast('Link removed.', 'ok');
+    loadEpMediaLinks(activityId);
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
+// ── TAB 3: ADD ACTIVITY ──
 function clearNewActivityForm() {
   ['ep-act-name','ep-act-unit','ep-act-src','ep-act-impact'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
+    const el = document.getElementById(id); if (el) el.value = '';
   });
   ['ep-act-budget','ep-act-base','ep-act-tgt','ep-act-actual'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
+    const el = document.getElementById(id); if (el) el.value = '';
   });
   const lvl = document.getElementById('ep-act-level');
   if (lvl) lvl.value = 'output';
 }
 
+// ── SAVE DISPATCHER ──
 async function saveEditPanel() {
   const btn = document.getElementById('ep-save-btn');
   btn.disabled = true;
@@ -1427,21 +1716,21 @@ async function saveEditPanel() {
 
   try {
     if (epCurrentTab === 0) {
-      // Save indicator actuals
       const inds = currentProjectData?.indicators || [];
       if (!inds.length) { showToast('No indicators to update.', 'error'); return; }
       const updates = inds.map(ind => ({
-        id: ind.id,
-        baseline_value:  parseFloat(document.getElementById('ep-ind-base-'   + ind.id)?.value) ?? ind.baseline_value,
-        overall_target:  parseFloat(document.getElementById('ep-ind-tgt-'    + ind.id)?.value) ?? ind.overall_target,
-        overall_actual:  parseFloat(document.getElementById('ep-ind-actual-' + ind.id)?.value) ?? ind.overall_actual,
+        id:             ind.id,
+        baseline_value: parseFloat(document.getElementById('ep-ind-base-'   + ind.id)?.value) || null,
+        overall_target: parseFloat(document.getElementById('ep-ind-tgt-'    + ind.id)?.value) || null,
+        overall_actual: parseFloat(document.getElementById('ep-ind-actual-' + ind.id)?.value) || null,
       }));
       const r = await apiPatch('/api/projects/' + currentProjectId + '/indicators', { updates });
       if (!r.success) throw new Error(r.error || 'Failed to save actuals');
-      showToast('✓ Activity actuals updated!', 'ok');
+      showToast('✓ Actuals updated!', 'ok');
+      await viewProject(currentProjectId);
+      renderEpIndicators(currentProjectData?.indicators || []);
 
     } else if (epCurrentTab === 1) {
-      // Save achievement statuses
       const ms = currentProjectData?.milestones || [];
       if (!ms.length) { showToast('No achievements to update.', 'error'); return; }
       const updates = ms.map(m => ({
@@ -1451,35 +1740,57 @@ async function saveEditPanel() {
       }));
       const r = await apiPatch('/api/projects/' + currentProjectId + '/milestones', { updates });
       if (!r.success) throw new Error(r.error || 'Failed to save achievement statuses');
-      showToast('✓ Achievement statuses updated!', 'ok');
+      showToast('✓ Achievements updated!', 'ok');
+      await viewProject(currentProjectId);
+      renderEpMilestones(currentProjectData?.milestones || []);
 
     } else if (epCurrentTab === 2) {
-      // Add new activity
+      // Save edits to existing activity
+      if (!epEditingIndicatorId) { showToast('Select an activity to edit.', 'error'); return; }
+      const name = document.getElementById('ep-ea-name')?.value.trim();
+      if (!name) { showToast('Activity name is required.', 'error'); return; }
+      const payload = {
+        name,
+        result_level:        document.getElementById('ep-ea-level')?.value  || 'output',
+        unit_of_measurement: document.getElementById('ep-ea-unit')?.value   || 'Number',
+        budget_allocation:   parseFloat(document.getElementById('ep-ea-budget')?.value) || null,
+        data_source:         document.getElementById('ep-ea-src')?.value,
+        baseline_value:      parseFloat(document.getElementById('ep-ea-base')?.value)   || null,
+        overall_target:      parseFloat(document.getElementById('ep-ea-tgt')?.value)    || null,
+        overall_actual:      parseFloat(document.getElementById('ep-ea-actual')?.value) || null,
+        impact:              document.getElementById('ep-ea-impact')?.value,
+      };
+      const r = await apiPatch('/api/indicators/' + epEditingIndicatorId, payload);
+      if (!r.success) throw new Error(r.error || 'Failed to save activity');
+      showToast('✓ Activity saved!', 'ok');
+      await viewProject(currentProjectId);
+      populateEditActivitySelect(currentProjectData?.indicators || []);
+      // Re-select the same activity so the user sees refreshed data
+      const sel = document.getElementById('ep-edit-act-select');
+      sel.value = epEditingIndicatorId;
+      loadActivityForEdit();
+
+    } else if (epCurrentTab === 3) {
+      // Add brand new activity
       const name = document.getElementById('ep-act-name')?.value.trim();
       if (!name) { showToast('Please enter an activity name.', 'error'); return; }
       const newAct = {
         name,
-        result_level:        document.getElementById('ep-act-level')?.value || 'output',
-        unit_of_measurement: document.getElementById('ep-act-unit')?.value  || 'Number',
+        result_level:        document.getElementById('ep-act-level')?.value  || 'output',
+        unit_of_measurement: document.getElementById('ep-act-unit')?.value   || 'Number',
         data_source:         document.getElementById('ep-act-src')?.value,
-        budget_allocation:   parseFloat(document.getElementById('ep-act-budget')?.value)  || null,
-        baseline_value:      parseFloat(document.getElementById('ep-act-base')?.value)    || null,
-        overall_target:      parseFloat(document.getElementById('ep-act-tgt')?.value)     || null,
-        overall_actual:      parseFloat(document.getElementById('ep-act-actual')?.value)  || null,
+        budget_allocation:   parseFloat(document.getElementById('ep-act-budget')?.value) || null,
+        baseline_value:      parseFloat(document.getElementById('ep-act-base')?.value)   || null,
+        overall_target:      parseFloat(document.getElementById('ep-act-tgt')?.value)    || null,
+        overall_actual:      parseFloat(document.getElementById('ep-act-actual')?.value) || null,
         impact:              document.getElementById('ep-act-impact')?.value,
       };
       const r = await apiPost('/api/projects/' + currentProjectId + '/indicators', newAct);
       if (!r.success) throw new Error(r.error || 'Failed to add activity');
       showToast('✓ New activity added!', 'ok');
       clearNewActivityForm();
-    }
-
-    // Reload project detail to reflect changes
-    await viewProject(currentProjectId);
-    // Re-render edit panel with fresh data so it stays open with updated values
-    if (epCurrentTab !== 2) {
-      renderEpIndicators(currentProjectData?.indicators || []);
-      renderEpMilestones(currentProjectData?.milestones || []);
+      await viewProject(currentProjectId);
+      populateEditActivitySelect(currentProjectData?.indicators || []);
     }
 
   } catch(e) {
