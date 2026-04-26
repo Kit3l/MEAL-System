@@ -6,9 +6,7 @@
  *
  * Setup:
  *   npm init -y
- *   npm install express cors dotenv @supabase/supabase-js axios node-cronapp.use(helmet({
-  contentSecurityPolicy: false,
-}));
+ *   npm install express cors dotenv @supabase/supabase-js axios node-cron
  *
  * .env file needed:
  *   PORT=3000
@@ -213,7 +211,7 @@ app.patch("/api/projects/:id", async (req, res) => {
 
 /**
  * DELETE /api/projects/:id
- * Soft-delete by setting status to 'closed' (preferred over hard delete).
+ * Soft-delete by setting status to 'closed'.
  */
 app.delete("/api/projects/:id", async (req, res) => {
   try {
@@ -231,8 +229,133 @@ app.delete("/api/projects/:id", async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INDICATORS & DATA ENTRY
+// ACTIVITIES (INDICATORS) — per-project
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/projects/:id/indicators
+ * Add a single new activity/indicator to an existing project.
+ */
+app.post("/api/projects/:id/indicators", async (req, res) => {
+  try {
+    const payload = { ...req.body, project_id: req.params.id };
+    const { data, error } = await supabase
+      .from("indicators")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
+/**
+ * PATCH /api/projects/:id/indicators
+ * Bulk-update actuals/targets for all indicators on a project.
+ * Body: { updates: [{ id, baseline_value, overall_target, overall_actual }] }
+ */
+app.patch("/api/projects/:id/indicators", async (req, res) => {
+  const { updates = [] } = req.body;
+  if (!updates.length) return err(res, "No updates provided", 422);
+
+  try {
+    const results = [];
+    for (const u of updates) {
+      const { id, ...fields } = u;
+      if (!id) continue;
+      const { data, error } = await supabase
+        .from("indicators")
+        .update(fields)
+        .eq("id", id)
+        .eq("project_id", req.params.id)   // safety: only update indicators belonging to this project
+        .select()
+        .single();
+      if (error) console.error(`[indicator update ${id}]`, error.message);
+      else results.push(data);
+    }
+    ok(res, results);
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MILESTONES / ACHIEVEMENTS — per-project
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/projects/:id/milestones
+ * Add a new achievement to an existing project.
+ */
+app.post("/api/projects/:id/milestones", async (req, res) => {
+  try {
+    const payload = { ...req.body, project_id: req.params.id };
+    const { data, error } = await supabase
+      .from("milestones")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
+/**
+ * PATCH /api/projects/:id/milestones
+ * Bulk-update status/due_date for all achievements on a project.
+ * Body: { updates: [{ id, status, due_date }] }
+ */
+app.patch("/api/projects/:id/milestones", async (req, res) => {
+  const { updates = [] } = req.body;
+  if (!updates.length) return err(res, "No updates provided", 422);
+
+  try {
+    const results = [];
+    for (const u of updates) {
+      const { id, ...fields } = u;
+      if (!id) continue;
+      const { data, error } = await supabase
+        .from("milestones")
+        .update(fields)
+        .eq("id", id)
+        .eq("project_id", req.params.id)   // safety: only update milestones belonging to this project
+        .select()
+        .single();
+      if (error) console.error(`[milestone update ${id}]`, error.message);
+      else results.push(data);
+    }
+    ok(res, results);
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INDIVIDUAL INDICATOR & MILESTONE ROUTES
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * PATCH /api/indicators/:id
+ * Update a single indicator (actuals, budget, impact, etc.)
+ */
+app.patch("/api/indicators/:id", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("indicators")
+      .update(req.body)
+      .eq("id", req.params.id)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) {
+    err(res, e.message);
+  }
+});
 
 /**
  * POST /api/indicators/:id/data
@@ -242,7 +365,6 @@ app.post("/api/indicators/:id/data", async (req, res) => {
   const { id } = req.params;
   const payload = { ...req.body, indicator_id: id };
 
-  // Fetch the indicator's project_id
   const { data: ind, error: indErr } = await supabase
     .from("indicators")
     .select("project_id, overall_target")
@@ -253,7 +375,6 @@ app.post("/api/indicators/:id/data", async (req, res) => {
   payload.project_id = ind.project_id;
 
   try {
-    // Upsert: one record per indicator per period
     const { data, error } = await supabase
       .from("indicator_data")
       .upsert(payload, { onConflict: "indicator_id,reporting_period" })
@@ -261,17 +382,14 @@ app.post("/api/indicators/:id/data", async (req, res) => {
       .single();
     if (error) return dbErr(res, error);
 
-    // Recalculate cumulative overall_actual on indicators table
+    // Recalculate cumulative overall_actual
     const { data: rows } = await supabase
       .from("indicator_data")
       .select("actual_value")
       .eq("indicator_id", id);
 
     const cumulative = rows?.reduce((s, r) => s + (r.actual_value || 0), 0) || 0;
-    await supabase
-      .from("indicators")
-      .update({ overall_actual: cumulative })
-      .eq("id", id);
+    await supabase.from("indicators").update({ overall_actual: cumulative }).eq("id", id);
 
     ok(res, data, 201);
   } catch (e) {
@@ -296,28 +414,182 @@ app.get("/api/projects/:id/indicators/progress", async (req, res) => {
   }
 });
 
+/**
+ * PATCH /api/milestones/:id
+ * Update a single milestone/achievement.
+ */
+app.patch("/api/milestones/:id", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("milestones")
+      .update(req.body)
+      .eq("id", req.params.id)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
+/**
+ * POST /api/activities/:id/achievements
+ * Add a new achievement directly linked to an activity.
+ */
+app.post("/api/activities/:id/achievements", async (req, res) => {
+  try {
+    const payload = { ...req.body, activity_id: req.params.id };
+    const { data, error } = await supabase
+      .from("milestones")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IMPACTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/projects/:id/impacts", async (req, res) => {
+  const { data, error } = await supabase
+    .from("impacts").select("*").eq("project_id", req.params.id)
+    .order("created_at", { ascending: true });
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+app.post("/api/impacts", async (req, res) => {
+  const { data, error } = await supabase.from("impacts").insert(req.body).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+app.patch("/api/impacts/:id", async (req, res) => {
+  const { data, error } = await supabase
+    .from("impacts").update(req.body).eq("id", req.params.id).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+app.delete("/api/impacts/:id", async (req, res) => {
+  const { error } = await supabase.from("impacts").delete().eq("id", req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEDIA LINKS
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/activities/:id/media", async (req, res) => {
+  const { data, error } = await supabase
+    .from("media_links").select("*").eq("activity_id", req.params.id)
+    .order("created_at", { ascending: true });
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+app.post("/api/media-links", async (req, res) => {
+  const { data, error } = await supabase.from("media_links").insert(req.body).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+app.delete("/api/media-links/:id", async (req, res) => {
+  const { error } = await supabase.from("media_links").delete().eq("id", req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ATTACHMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/activities/:id/attachments", async (req, res) => {
+  const { data, error } = await supabase
+    .from("attachments").select("*").eq("activity_id", req.params.id)
+    .order("created_at", { ascending: true });
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+
+app.post("/api/attachments", async (req, res) => {
+  const { data, error } = await supabase.from("attachments").insert(req.body).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+
+app.delete("/api/attachments/:id", async (req, res) => {
+  const { data: attachment, error: fetchError } = await supabase
+    .from("attachments").select("file_path").eq("id", req.params.id).single();
+  if (fetchError) return dbErr(res, fetchError);
+
+  await supabase.storage.from("activity-attachments").remove([attachment.file_path]);
+
+  const { error } = await supabase.from("attachments").delete().eq("id", req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUDGET SUMMARY
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/projects/:id/budget", async (req, res) => {
+  try {
+    const { data: project, error: projError } = await supabase
+      .from("projects").select("budget_usd, title, code").eq("id", req.params.id).single();
+    if (projError) return dbErr(res, projError);
+
+    const { data: activities, error: actError } = await supabase
+      .from("indicators").select("id, name, budget_allocation").eq("project_id", req.params.id);
+    if (actError) return dbErr(res, actError);
+
+    const totalAllocated = activities.reduce((sum, a) => sum + (parseFloat(a.budget_allocation) || 0), 0);
+    const remaining      = (parseFloat(project.budget_usd) || 0) - totalAllocated;
+    const percentUsed    = project.budget_usd ? (totalAllocated / parseFloat(project.budget_usd)) * 100 : 0;
+
+    let budgetStatus = "green";
+    if (percentUsed >= 100) budgetStatus = "red";
+    else if (percentUsed >= 85) budgetStatus = "orange";
+
+    ok(res, {
+      project_title:   project.title,
+      project_code:    project.code,
+      total_budget:    parseFloat(project.budget_usd) || 0,
+      total_allocated: totalAllocated,
+      remaining,
+      percent_used:    Math.round(percentUsed),
+      budget_status:   budgetStatus,
+      activities:      activities.map(a => ({
+        id: a.id, name: a.name,
+        budget_allocation: parseFloat(a.budget_allocation) || 0,
+      })),
+    });
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // DASHBOARD & ANALYTICS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * GET /api/dashboard
- * Returns portfolio-level stats for the main dashboard.
- */
 app.get("/api/dashboard", async (req, res) => {
   try {
     const [portfolio, overdue, highRisks] = await Promise.all([
       supabase.from("v_portfolio_dashboard").select("*"),
       supabase.from("v_overdue_milestones").select("*").limit(10),
-      supabase
-        .from("risks")
-        .select("*, projects(title,code)")
-        .gte("risk_score", 6)
-        .eq("is_resolved", false)
-        .order("risk_score", { ascending: false })
-        .limit(10),
+      supabase.from("risks").select("*, projects(title,code)")
+        .gte("risk_score", 6).eq("is_resolved", false)
+        .order("risk_score", { ascending: false }).limit(10),
     ]);
-
     ok(res, {
       portfolio:  portfolio.data  || [],
       overdue:    overdue.data    || [],
@@ -332,35 +604,21 @@ app.get("/api/dashboard", async (req, res) => {
 // KOBOTOOLS INTEGRATION
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * POST /api/kobo/webhook
- * Receives KoboToolbox webhook submissions in real time.
- * Configure this URL in KoboToolbox project → Settings → REST Services.
- *
- * KoboToolbox POST body structure:
- *   { "_id": 123, "formhub/uuid": "...", "group/question": "value", ... }
- */
 app.post("/api/kobo/webhook", async (req, res) => {
-  // Verify secret header
   const secret = req.headers["x-kobo-secret"] || req.query.secret;
-  if (secret !== process.env.API_SECRET) {
-    return err(res, "Unauthorized", 401);
-  }
+  if (secret !== process.env.API_SECRET) return err(res, "Unauthorized", 401);
 
   const submission = req.body;
   console.log(`[KoboWebhook] Received submission ID: ${submission["_id"]}`);
 
   try {
     const mapped = mapKoboToIndicatorData(submission);
-    if (!mapped) {
-      return ok(res, { message: "Submission received but no mapping matched" });
-    }
+    if (!mapped) return ok(res, { message: "Submission received but no mapping matched" });
 
     const { data, error } = await supabase
       .from("indicator_data")
       .upsert(mapped, { onConflict: "indicator_id,reporting_period" })
-      .select()
-      .single();
+      .select().single();
 
     if (error) return dbErr(res, error);
     ok(res, { message: "Submission processed", record: data });
@@ -372,25 +630,14 @@ app.post("/api/kobo/webhook", async (req, res) => {
 app.post("/api/kobo/sync", async (req, res) => {
   const { asset_uid, project_id, indicator_id } = req.body;
   if (!asset_uid) return err(res, "asset_uid is required", 422);
-  req.params = { assetUid: asset_uid };
-  req.body.project_id = project_id;
 
   const { data: syncLog } = await supabase
     .from("kobo_sync_log")
-    .insert({
-      project_id,
-      kobo_asset_uid: asset_uid,
-      sync_type: "pull",
-      status: "running",
-    })
-    .select()
-    .single();
+    .insert({ project_id, kobo_asset_uid: asset_uid, sync_type: "pull", status: "running" })
+    .select().single();
 
   const logId = syncLog?.id;
-  res.status(202).json({
-    success: true,
-    data: { message: "Sync started", log_id: logId },
-  });
+  res.status(202).json({ success: true, data: { message: "Sync started", log_id: logId } });
 
   runKoboSync(asset_uid, project_id, indicator_id, logId).catch(console.error);
 });
@@ -399,42 +646,22 @@ app.post("/api/kobo/sync/:assetUid", async (req, res) => {
   const { assetUid } = req.params;
   const { project_id, indicator_id } = req.body;
 
-  // Create sync log entry
   const { data: syncLog } = await supabase
     .from("kobo_sync_log")
-    .insert({
-      project_id,
-      kobo_asset_uid: assetUid,
-      sync_type: "pull",
-      status: "running",
-    })
-    .select()
-    .single();
+    .insert({ project_id, kobo_asset_uid: assetUid, sync_type: "pull", status: "running" })
+    .select().single();
 
   const logId = syncLog?.id;
+  res.status(202).json({ success: true, data: { message: "Sync started", log_id: logId } });
 
-  // Run sync asynchronously so we can return 202 immediately
-  res.status(202).json({
-    success: true,
-    data: { message: "Sync started", log_id: logId },
-  });
-
-  // Perform sync in background
   runKoboSync(assetUid, project_id, indicator_id, logId).catch(console.error);
 });
 
-/**
- * GET /api/kobo/forms
- * List all KoboToolbox forms available to this account.
- */
 app.get("/api/kobo/forms", async (req, res) => {
   try {
     const response = await axios.get(
       `${process.env.KOBO_BASE_URL}/api/v2/assets/?asset_type=survey`,
-      {
-        headers: { Authorization: `Token ${process.env.KOBO_API_TOKEN}` },
-        timeout: 10000,
-      }
+      { headers: { Authorization: `Token ${process.env.KOBO_API_TOKEN}` }, timeout: 10000 }
     );
     const forms = response.data.results.map(f => ({
       uid:         f.uid,
@@ -453,16 +680,11 @@ app.get("/api/kobo/forms", async (req, res) => {
 // KOBO SYNC LOGIC (internal)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Fetches all submissions from a KoboToolbox form and upserts into indicator_data.
- * Handles pagination (KoboToolbox returns max 30,000 per request).
- */
 async function runKoboSync(assetUid, projectId, indicatorId, logId) {
-  let inserted = 0, updated = 0, failed = 0;
+  let inserted = 0, failed = 0;
   const errors = [];
 
   try {
-    // Fetch submissions from KoboToolbox
     const url = `${process.env.KOBO_BASE_URL}/api/v2/assets/${assetUid}/data/?format=json&limit=5000`;
     const response = await axios.get(url, {
       headers: { Authorization: `Token ${process.env.KOBO_API_TOKEN}` },
@@ -481,19 +703,14 @@ async function runKoboSync(assetUid, projectId, indicatorId, logId) {
           .from("indicator_data")
           .upsert(mapped, { onConflict: "indicator_id,reporting_period" });
 
-        if (error) {
-          failed++;
-          errors.push({ id: sub["_id"], error: error.message });
-        } else {
-          inserted++;
-        }
+        if (error) { failed++; errors.push({ id: sub["_id"], error: error.message }); }
+        else inserted++;
       } catch (subErr) {
         failed++;
         errors.push({ id: sub["_id"], error: subErr.message });
       }
     }
 
-    // Update sync log
     await supabase.from("kobo_sync_log").update({
       records_fetched:  submissions.length,
       records_inserted: inserted,
@@ -514,20 +731,6 @@ async function runKoboSync(assetUid, projectId, indicatorId, logId) {
   }
 }
 
-/**
- * Maps a raw KoboToolbox submission to an indicator_data row.
- *
- * ⚠️  CUSTOMISE THIS FUNCTION for your form structure.
- * KoboToolbox field names follow the pattern "group_name/question_name".
- *
- * Example KoboToolbox fields (edit to match your form):
- *   indicator_id     → "monitoring/indicator_id"
- *   reporting_period → "monitoring/reporting_period"
- *   target_value     → "monitoring/target_value"
- *   actual_value     → "monitoring/actual_value"
- *   disaggregated_female → "monitoring/female_count"
- *   disaggregated_male   → "monitoring/male_count"
- */
 function mapKoboToIndicatorData(submission, fallbackIndicatorId = null, fallbackProjectId = null) {
   const indicatorId = submission["monitoring/indicator_id"] || fallbackIndicatorId;
   if (!indicatorId) return null;
@@ -548,8 +751,8 @@ function mapKoboToIndicatorData(submission, fallbackIndicatorId = null, fallback
       female: parseInt(submission["monitoring/female_count"]) || 0,
       male:   parseInt(submission["monitoring/male_count"])   || 0,
     },
-    notes:             submission["monitoring/notes"] || null,
-    data_source_type:  "kobo",
+    notes:              submission["monitoring/notes"] || null,
+    data_source_type:   "kobo",
     kobo_submission_id: String(submission["_id"]),
   };
 }
@@ -558,22 +761,14 @@ function mapKoboToIndicatorData(submission, fallbackIndicatorId = null, fallback
 // SCHEDULED JOBS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Daily at 02:00 — sync all active KoboToolbox forms for active projects.
- * Reads projects that have a linked kobo_asset_uid in their metadata.
- */
 cron.schedule("0 2 * * *", async () => {
   console.log("[Cron] Daily KoboToolbox sync starting…");
-
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, code, kobo_asset_uid:description")  // store uid in a dedicated column in prod
+    .select("id, code, kobo_asset_uid:description")
     .eq("status", "active");
 
-  if (!projects?.length) {
-    console.log("[Cron] No active projects to sync.");
-    return;
-  }
+  if (!projects?.length) { console.log("[Cron] No active projects to sync."); return; }
 
   for (const p of projects) {
     if (!p.kobo_asset_uid) continue;
@@ -586,9 +781,6 @@ cron.schedule("0 2 * * *", async () => {
   }
 });
 
-/**
- * Every Monday at 08:00 — flag overdue milestones and log them.
- */
 cron.schedule("0 8 * * 1", async () => {
   console.log("[Cron] Checking overdue milestones…");
   const { data, error } = await supabase
@@ -596,11 +788,10 @@ cron.schedule("0 8 * * 1", async () => {
     .select("id, project_title, title, days_overdue");
   if (error) { console.error(error.message); return; }
   console.log(`[Cron] ${data?.length || 0} overdue milestone(s) found.`);
-  // Hook your email/SMS notification service here
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HEALTH CHECK & START
+// STATIC FILES, HEALTH CHECK & START
 // ─────────────────────────────────────────────────────────────────────────────
 
 const path = require("path");
@@ -612,254 +803,16 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-  res.json({
-    status:  "ok",
-    service: "MEAL API",
-    version: "1.0.0",
-    time:    new Date().toISOString(),
-  });
+  res.json({ status: "ok", service: "MEAL API", version: "1.0.0", time: new Date().toISOString() });
 });
 
-// 404 handler
+// 404 handler — must come AFTER all routes
 app.use((req, res) => err(res, `Route ${req.method} ${req.path} not found`, 404));
 
 // Global error handler
 app.use((error, req, res, next) => {
   console.error("[Unhandled]", error);
   err(res, "Internal server error", 500);
-});
-// ─── ACTIVITIES (INDICATORS) ──────────────────────────────────────────────────
-
-// PATCH indicator/activity — update actuals, budget, impact
-app.patch('/api/indicators/:id', async (req, res) => {
-  const { data, error } = await supabase
-    .from('indicators')
-    .update(req.body)
-    .eq('id', req.params.id)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-// POST new activity to existing project
-app.post('/api/projects/:id/indicators', async (req, res) => {
-  const payload = { ...req.body, project_id: req.params.id };
-  const { data, error } = await supabase
-    .from('indicators')
-    .insert(payload)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data, 201);
-});
-
-// ─── MILESTONES / ACHIEVEMENTS ────────────────────────────────────────────────
-
-// PATCH milestone/achievement — update status, completion, activity link
-app.patch('/api/milestones/:id', async (req, res) => {
-  const { data, error } = await supabase
-    .from('milestones')
-    .update(req.body)
-    .eq('id', req.params.id)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-// POST new achievement to existing project
-app.post('/api/projects/:id/milestones', async (req, res) => {
-  const payload = { ...req.body, project_id: req.params.id };
-  const { data, error } = await supabase
-    .from('milestones')
-    .insert(payload)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data, 201);
-});
-
-// POST new achievement directly to an activity
-app.post('/api/activities/:id/achievements', async (req, res) => {
-  const payload = { ...req.body, activity_id: req.params.id };
-  const { data, error } = await supabase
-    .from('milestones')
-    .insert(payload)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data, 201);
-});
-
-// ─── IMPACTS ──────────────────────────────────────────────────────────────────
-
-// GET impacts for a project
-app.get('/api/projects/:id/impacts', async (req, res) => {
-  const { data, error } = await supabase
-    .from('impacts')
-    .select('*')
-    .eq('project_id', req.params.id)
-    .order('created_at', { ascending: true });
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-// POST new impact
-app.post('/api/impacts', async (req, res) => {
-  const { data, error } = await supabase
-    .from('impacts')
-    .insert(req.body)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data, 201);
-});
-
-// PATCH impact
-app.patch('/api/impacts/:id', async (req, res) => {
-  const { data, error } = await supabase
-    .from('impacts')
-    .update(req.body)
-    .eq('id', req.params.id)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-// DELETE impact
-app.delete('/api/impacts/:id', async (req, res) => {
-  const { error } = await supabase
-    .from('impacts')
-    .delete()
-    .eq('id', req.params.id);
-  if (error) return dbErr(res, error);
-  ok(res, { deleted: true });
-});
-
-// ─── MEDIA LINKS ──────────────────────────────────────────────────────────────
-
-// GET media links for an activity
-app.get('/api/activities/:id/media', async (req, res) => {
-  const { data, error } = await supabase
-    .from('media_links')
-    .select('*')
-    .eq('activity_id', req.params.id)
-    .order('created_at', { ascending: true });
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-// POST new media link
-app.post('/api/media-links', async (req, res) => {
-  const { data, error } = await supabase
-    .from('media_links')
-    .insert(req.body)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data, 201);
-});
-
-// DELETE media link
-app.delete('/api/media-links/:id', async (req, res) => {
-  const { error } = await supabase
-    .from('media_links')
-    .delete()
-    .eq('id', req.params.id);
-  if (error) return dbErr(res, error);
-  ok(res, { deleted: true });
-});
-
-// ─── ATTACHMENTS ──────────────────────────────────────────────────────────────
-
-// GET attachments for an activity
-app.get('/api/activities/:id/attachments', async (req, res) => {
-  const { data, error } = await supabase
-    .from('attachments')
-    .select('*')
-    .eq('activity_id', req.params.id)
-    .order('created_at', { ascending: true });
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-// POST new attachment record (after file uploaded to storage)
-app.post('/api/attachments', async (req, res) => {
-  const { data, error } = await supabase
-    .from('attachments')
-    .insert(req.body)
-    .select()
-    .single();
-  if (error) return dbErr(res, error);
-  ok(res, data, 201);
-});
-
-// DELETE attachment
-app.delete('/api/attachments/:id', async (req, res) => {
-  // First get the file path so we can delete from storage too
-  const { data: attachment, error: fetchError } = await supabase
-    .from('attachments')
-    .select('file_path')
-    .eq('id', req.params.id)
-    .single();
-  if (fetchError) return dbErr(res, fetchError);
-
-  // Delete from storage
-  await supabase.storage
-    .from('activity-attachments')
-    .remove([attachment.file_path]);
-
-  // Delete record
-  const { error } = await supabase
-    .from('attachments')
-    .delete()
-    .eq('id', req.params.id);
-  if (error) return dbErr(res, error);
-  ok(res, { deleted: true });
-});
-
-// ─── BUDGET SUMMARY ───────────────────────────────────────────────────────────
-
-// GET budget breakdown for a project
-app.get('/api/projects/:id/budget', async (req, res) => {
-  const { data: project, error: projError } = await supabase
-    .from('projects')
-    .select('budget_usd, title, code')
-    .eq('id', req.params.id)
-    .single();
-  if (projError) return dbErr(res, projError);
-
-  const { data: activities, error: actError } = await supabase
-    .from('indicators')
-    .select('id, name, budget_allocation')
-    .eq('project_id', req.params.id);
-  if (actError) return dbErr(res, actError);
-
-  const totalAllocated = activities.reduce((sum, a) => sum + (parseFloat(a.budget_allocation) || 0), 0);
-  const remaining = (parseFloat(project.budget_usd) || 0) - totalAllocated;
-  const percentUsed = project.budget_usd ? (totalAllocated / parseFloat(project.budget_usd)) * 100 : 0;
-
-  // Traffic light
-  let budgetStatus = 'green';
-  if (percentUsed >= 100) budgetStatus = 'red';
-  else if (percentUsed >= 85) budgetStatus = 'orange';
-
-  ok(res, {
-    project_title: project.title,
-    project_code: project.code,
-    total_budget: parseFloat(project.budget_usd) || 0,
-    total_allocated: totalAllocated,
-    remaining: remaining,
-    percent_used: Math.round(percentUsed),
-    budget_status: budgetStatus,
-    activities: activities.map(a => ({
-      id: a.id,
-      name: a.name,
-      budget_allocation: parseFloat(a.budget_allocation) || 0
-    }))
-  });
 });
 
 app.listen(PORT, () => {
