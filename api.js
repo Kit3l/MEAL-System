@@ -815,6 +815,94 @@ app.use((error, req, res, next) => {
   err(res, "Internal server error", 500);
 });
 
+// ── LOGFRAME ──
+app.get('/api/projects/:id/logframe', async (req, res) => {
+  const { data, error } = await supabase.from('logframe_rows').select('*').eq('project_id', req.params.id).order('sort_order');
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+app.post('/api/projects/:id/logframe', async (req, res) => {
+  const { data, error } = await supabase.from('logframe_rows').insert({ ...req.body, project_id: req.params.id }).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+app.patch('/api/logframe/:id', async (req, res) => {
+  const { data, error } = await supabase.from('logframe_rows').update(req.body).eq('id', req.params.id).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+app.delete('/api/logframe/:id', async (req, res) => {
+  const { error } = await supabase.from('logframe_rows').delete().eq('id', req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ── EVALUATIONS ──
+app.get('/api/evaluations', async (req, res) => {
+  let q = supabase.from('evaluations').select('*, projects(title,code)').order('created_at', { ascending: false });
+  if (req.query.project_id) q = q.eq('project_id', req.query.project_id);
+  const { data, error } = await q;
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+app.post('/api/evaluations', async (req, res) => {
+  const { data, error } = await supabase.from('evaluations').insert(req.body).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+app.patch('/api/evaluations/:id', async (req, res) => {
+  const { data, error } = await supabase.from('evaluations').update(req.body).eq('id', req.params.id).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+app.delete('/api/evaluations/:id', async (req, res) => {
+  const { error } = await supabase.from('evaluations').delete().eq('id', req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ── LEARNING ENTRIES ──
+app.get('/api/learning', async (req, res) => {
+  let q = supabase.from('learning_entries').select('*, projects(title,code)').order('created_at', { ascending: false });
+  if (req.query.project_id) q = q.eq('project_id', req.query.project_id);
+  const { data, error } = await q;
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+app.post('/api/learning', async (req, res) => {
+  const { data, error } = await supabase.from('learning_entries').insert(req.body).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+app.delete('/api/learning/:id', async (req, res) => {
+  const { error } = await supabase.from('learning_entries').delete().eq('id', req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
+
+// ── DISSEMINATION PLANS ──
+app.get('/api/dissemination', async (req, res) => {
+  let q = supabase.from('dissemination_plans').select('*, projects(title,code)').order('created_at', { ascending: false });
+  if (req.query.project_id) q = q.eq('project_id', req.query.project_id);
+  const { data, error } = await q;
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+app.post('/api/dissemination', async (req, res) => {
+  const { data, error } = await supabase.from('dissemination_plans').insert(req.body).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data, 201);
+});
+app.patch('/api/dissemination/:id', async (req, res) => {
+  const { data, error } = await supabase.from('dissemination_plans').update(req.body).eq('id', req.params.id).select().single();
+  if (error) return dbErr(res, error);
+  ok(res, data);
+});
+app.delete('/api/dissemination/:id', async (req, res) => {
+  const { error } = await supabase.from('dissemination_plans').delete().eq('id', req.params.id);
+  if (error) return dbErr(res, error);
+  ok(res, { deleted: true });
+});
 app.listen(PORT, () => {
   console.log(`✓ MEAL API running on http://localhost:${PORT}`);
   console.log(`  Supabase: ${process.env.SUPABASE_URL}`);

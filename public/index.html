@@ -350,6 +350,45 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
 .edit-ms-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
 .new-act-card { background: var(--bg-light); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px; border-left: 4px solid var(--maroon); }
 .new-act-label { font-family: var(--font-head); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--maroon); margin-bottom: 12px; }
+
+/* ── LOGFRAME TABLE ── */
+.lf-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.lf-table th { font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; font-family: var(--font-head); background: var(--bg-card); }
+.lf-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.lf-table tr:hover td { background: var(--surface); }
+.lf-input { background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-primary); font-family: var(--font-body); font-size: 12px; padding: 5px 7px; width: 100%; outline: none; transition: all .14s; min-width: 60px; }
+.lf-input:focus { background: var(--bg-light); border-color: var(--green); }
+.lf-input::placeholder { color: var(--text-muted); }
+.lf-select { background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-primary); font-family: var(--font-body); font-size: 12px; padding: 5px 7px; width: 100%; outline: none; cursor: pointer; appearance: none; }
+.lf-select:focus { background: var(--bg-light); border-color: var(--green); }
+.lf-select option { background: var(--bg-mid); }
+.lf-textarea { background: transparent; border: 1px solid transparent; border-radius: 6px; color: var(--text-primary); font-family: var(--font-body); font-size: 12px; padding: 5px 7px; width: 100%; outline: none; resize: none; min-height: 52px; line-height: 1.5; transition: all .14s; }
+.lf-textarea:focus { background: var(--bg-light); border-color: var(--green); }
+.lf-textarea::placeholder { color: var(--text-muted); }
+
+/* ── LEARNING CARDS ── */
+.le-card { background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--orange); border-radius: var(--radius-lg); padding: 18px 22px; margin-bottom: 12px; }
+.le-card.type-best_practice { border-left-color: var(--green); }
+.le-card.type-adaptation { border-left-color: var(--blue); }
+.le-card.type-reflection { border-left-color: var(--purple); }
+.le-card.type-recommendation { border-left-color: var(--yellow); }
+.le-card-title { font-family: var(--font-head); font-weight: 700; font-size: 14px; color: var(--text-primary); margin-bottom: 8px; }
+.le-card-body { font-size: 13px; color: var(--text-secondary); line-height: 1.65; margin-bottom: 10px; }
+.le-card-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ── DISSEMINATION / EVAL ROWS ── */
+.dis-row { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; margin-bottom: 10px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
+.dis-row-title { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 5px; }
+.dis-row-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 14px; flex-wrap: wrap; }
+.eval-row { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 10px; border-left: 4px solid var(--purple); }
+.eval-row-type { font-family: var(--font-head); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--purple); margin-bottom: 8px; }
+.eval-row-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 10px; }
+.eval-row-meta { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
+
+/* ── PMP CARD ── */
+.pmp-card { background: var(--bg-light); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+.pmp-card-name { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+.pmp-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 </style>
 </head>
 <body>
@@ -383,7 +422,10 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
     </button>
     <div class="nav-section">Analysis</div>
     <button class="nav-item" onclick="showView('learning')">
-      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learning & Reflections
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learning & Dissemination
+    </button>
+    <button class="nav-item" onclick="showView('evaluations')">
+      <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Evaluation Plan
     </button>
   </nav>
   <div class="sidebar-footer">
@@ -660,13 +702,77 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
       </div>
     </div>
 
-    <!-- ══ LEARNING ══ -->
+    <!-- ══ LEARNING & DISSEMINATION ══ -->
     <div class="view" id="view-learning">
-      <div class="page-header"><div><div class="page-eyebrow">The "L" in MEAL</div><div class="page-title">Learning & Reflections</div><div class="page-subtitle">Capture lessons from DLCI drylands programmes — best practices, adaptations, and reflections</div></div><button class="btn btn-primary" onclick="showToast('Learning entry module coming soon!')">+ Add Entry</button></div>
-      <div class="learning-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span class="badge badge-orange"><span class="badge-dot"></span>Lesson Learned</span><span style="font-size:11px;color:var(--text-muted);">Q1-2025 · Pastoral Livelihoods</span></div>
-        <div style="font-family:var(--font-head);font-weight:700;font-size:14px;margin-bottom:6px;color:var(--text-primary);">Community mobilisation through traditional pastoral structures increases programme uptake</div>
-        <div style="font-size:13px;color:var(--text-secondary);">Engaging traditional elders and women's groups in drylands communities increased DLCI programme uptake by 34% compared to direct field officer outreach. This approach should be replicated across all DLCI pastoral programmes.</div>
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">The "L" in MEAL</div>
+          <div class="page-title">Learning & Dissemination</div>
+          <div class="page-subtitle">Capture lessons from DLCI drylands programmes and plan knowledge dissemination</div>
+        </div>
+      </div>
+      <!-- Sub-tabs -->
+      <div style="display:flex;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:4px;margin-bottom:22px;">
+        <button class="ep-tab active" id="ltab-0" onclick="switchLTab(0)" style="flex:1;border-radius:9px;">Learning Entries</button>
+        <button class="ep-tab" id="ltab-1" onclick="switchLTab(1)" style="flex:1;border-radius:9px;">Dissemination Plan</button>
+      </div>
+
+      <!-- Learning Entries -->
+      <div id="lsec-0">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon" style="background:var(--orange-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#F58634" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <div><div class="card-title">Lessons Learned</div><div class="card-subtitle">Insights, adaptations, and reflections from DLCI programme implementation</div></div>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <select class="field-select" id="learning-proj-filter" onchange="loadLearningEntries()" style="width:200px;font-size:12px;padding:7px 30px 7px 10px;">
+                <option value="">All Projects</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openLearningModal()">+ Add Entry</button>
+            </div>
+          </div>
+          <div id="learning-list"><div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">Loading learning entries…</div></div>
+        </div>
+      </div>
+
+      <!-- Dissemination Plan -->
+      <div id="lsec-1" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon" style="background:var(--blue-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#4A90D9" stroke-width="1.8"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.56 2 2 0 0 1 3.57 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.54A16 16 0 0 0 16 16.61l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+            <div><div class="card-title">Dissemination Plan</div><div class="card-subtitle">Knowledge products, audiences, and dissemination schedule</div></div>
+            <div style="margin-left:auto;display:flex;gap:8px;">
+              <select class="field-select" id="dissem-proj-filter" onchange="loadDisseminationPlans()" style="width:200px;font-size:12px;padding:7px 30px 7px 10px;">
+                <option value="">All Projects</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openDissemModal()">+ Add Plan</button>
+            </div>
+          </div>
+          <div id="dissem-list"><div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">Loading dissemination plans…</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EVALUATIONS ══ -->
+    <div class="view" id="view-evaluations">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Evaluation</div>
+          <div class="page-title">Evaluation Plan</div>
+          <div class="page-subtitle">Baseline, midline, end-line, and impact evaluation scheduling across all DLCI projects</div>
+        </div>
+        <button class="btn btn-primary" onclick="openEvalModal()">+ Add Evaluation</button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:var(--purple-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <div><div class="card-title">Evaluation Schedule</div><div class="card-subtitle">All planned evaluations across the DLCI portfolio</div></div>
+          <div style="margin-left:auto;">
+            <select class="field-select" id="eval-proj-filter" onchange="loadEvaluations()" style="width:220px;font-size:12px;padding:7px 30px 7px 10px;">
+              <option value="">All Projects</option>
+            </select>
+          </div>
+        </div>
+        <div id="eval-list"><div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px;">Loading evaluations…</div></div>
       </div>
     </div>
 
@@ -689,6 +795,8 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
     <button class="ep-tab" onclick="switchEpTab(1)">Achievements</button>
     <button class="ep-tab" onclick="switchEpTab(2)">Edit Activity</button>
     <button class="ep-tab" onclick="switchEpTab(3)">Add Activity</button>
+    <button class="ep-tab" onclick="switchEpTab(4)">Logframe</button>
+    <button class="ep-tab" onclick="switchEpTab(5)">PMP</button>
   </div>
   <div class="edit-panel-body">
 
@@ -812,12 +920,188 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
       </div>
     </div>
 
+    <!-- Tab 4: Logframe -->
+    <div class="ep-section" id="ep-tab-4">
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Build the logical framework matrix — results hierarchy with indicators, baselines, targets, means of verification, and assumptions.</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <span style="font-size:11px;color:var(--text-muted);">Each row saves independently.</span>
+        <button class="btn btn-primary btn-sm" onclick="addLogframeRow()">+ Add Row</button>
+      </div>
+      <div id="ep-logframe-list"><div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Loading logframe…</div></div>
+    </div>
+
+    <!-- Tab 5: PMP -->
+    <div class="ep-section" id="ep-tab-5">
+      <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:14px;line-height:1.6;">Performance Monitoring Plan — the monitoring protocol sitting above each activity: who collects data, how often, and how it's analysed.</p>
+      <div id="ep-pmp-list"><div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Loading PMP…</div></div>
+    </div>
+
   </div>
   <div class="edit-panel-footer">
     <button class="btn btn-ghost" onclick="closeEditPanel()">Cancel</button>
     <button class="btn btn-primary" id="ep-save-btn" onclick="saveEditPanel()">
       <span id="ep-save-icon">✓</span> <span id="ep-save-label">Save Changes</span>
     </button>
+  </div>
+</div>
+
+<!-- ══ LEARNING ENTRY MODAL ══ -->
+<div class="modal-overlay" id="learning-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" style="margin-bottom:16px;">Add Learning Entry</div>
+    <div class="form-grid form-grid-2" style="gap:14px;margin-bottom:16px;">
+      <div class="field"><label class="field-label">Project <span class="req">*</span></label>
+        <select class="field-select" id="le-project"></select>
+      </div>
+      <div class="field"><label class="field-label">Entry Type <span class="req">*</span></label>
+        <select class="field-select" id="le-type">
+          <option value="lesson_learned">Lesson Learned</option>
+          <option value="best_practice">Best Practice</option>
+          <option value="adaptation">Programme Adaptation</option>
+          <option value="reflection">Reflection</option>
+          <option value="recommendation">Recommendation</option>
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Quarter / Period</label>
+        <input type="text" class="field-input" id="le-period" placeholder="e.g. Q1-2025, Jan–Jun 2025">
+      </div>
+      <div class="field"><label class="field-label">Thematic Area</label>
+        <input type="text" class="field-input" id="le-theme" placeholder="e.g. Pastoral Livelihoods, WASH">
+      </div>
+      <div class="field span-2"><label class="field-label">Title <span class="req">*</span></label>
+        <input type="text" class="field-input" id="le-title" placeholder="Concise heading for this learning entry">
+      </div>
+      <div class="field span-2"><label class="field-label">Narrative / Description <span class="req">*</span></label>
+        <textarea class="field-textarea" id="le-narrative" placeholder="Describe the lesson, best practice, or reflection in detail. Include evidence and context…" style="min-height:100px;"></textarea>
+      </div>
+      <div class="field span-2"><label class="field-label">Recommendation / Action</label>
+        <textarea class="field-textarea" id="le-recommendation" placeholder="What should be done differently or replicated?…" style="min-height:60px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeLearningModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLearningEntry()"><span id="le-save-icon">✓</span> Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DISSEMINATION PLAN MODAL ══ -->
+<div class="modal-overlay" id="dissem-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" style="margin-bottom:16px;">Add Dissemination Plan</div>
+    <div class="form-grid form-grid-2" style="gap:14px;margin-bottom:16px;">
+      <div class="field"><label class="field-label">Project <span class="req">*</span></label>
+        <select class="field-select" id="dis-project"></select>
+      </div>
+      <div class="field"><label class="field-label">Knowledge Product Type <span class="req">*</span></label>
+        <select class="field-select" id="dis-type">
+          <option value="progress_report">Progress Report</option>
+          <option value="evaluation_report">Evaluation Report</option>
+          <option value="case_study">Case Study</option>
+          <option value="policy_brief">Policy Brief</option>
+          <option value="learning_note">Learning Note</option>
+          <option value="newsletter">Newsletter</option>
+          <option value="dashboard">Dashboard / Database</option>
+          <option value="conference_paper">Conference Paper</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field span-2"><label class="field-label">Product Title <span class="req">*</span></label>
+        <input type="text" class="field-input" id="dis-title" placeholder="Name of the knowledge product">
+      </div>
+      <div class="field"><label class="field-label">Primary Audience</label>
+        <input type="text" class="field-input" id="dis-audience" placeholder="Donors, government, communities…">
+      </div>
+      <div class="field"><label class="field-label">Dissemination Channel</label>
+        <input type="text" class="field-input" id="dis-channel" placeholder="Stakeholder meetings, publications, social media…">
+      </div>
+      <div class="field"><label class="field-label">Responsible Person</label>
+        <input type="text" class="field-input" id="dis-responsible" placeholder="Full name">
+      </div>
+      <div class="field"><label class="field-label">Due Date</label>
+        <input type="date" class="field-input" id="dis-due">
+      </div>
+      <div class="field"><label class="field-label">Status</label>
+        <select class="field-select" id="dis-status">
+          <option value="planned">Planned</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="delayed">Delayed</option>
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Est. Budget (USD)</label>
+        <input type="number" class="field-input" id="dis-budget" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDissemModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDisseminationPlan()"><span id="dis-save-icon">✓</span> Save Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EVALUATION MODAL ══ -->
+<div class="modal-overlay" id="eval-modal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-title" style="margin-bottom:16px;">Add Evaluation</div>
+    <div class="form-grid form-grid-2" style="gap:14px;margin-bottom:16px;">
+      <div class="field"><label class="field-label">Project <span class="req">*</span></label>
+        <select class="field-select" id="ev-project"></select>
+      </div>
+      <div class="field"><label class="field-label">Evaluation Type <span class="req">*</span></label>
+        <select class="field-select" id="ev-type">
+          <option value="baseline">Baseline</option>
+          <option value="midline">Midline</option>
+          <option value="endline">End-line</option>
+          <option value="impact">Impact Evaluation</option>
+          <option value="realtime">Real-time / Developmental</option>
+          <option value="process">Process Evaluation</option>
+        </select>
+      </div>
+      <div class="field span-2"><label class="field-label">Purpose / Key Questions <span class="req">*</span></label>
+        <textarea class="field-textarea" id="ev-purpose" placeholder="What will this evaluation answer? What decisions will it inform?…" style="min-height:80px;"></textarea>
+      </div>
+      <div class="field"><label class="field-label">Methodology</label>
+        <select class="field-select" id="ev-methodology">
+          <option value="mixed">Mixed Methods</option>
+          <option value="quantitative">Quantitative</option>
+          <option value="qualitative">Qualitative</option>
+          <option value="rct">RCT</option>
+          <option value="quasi_experimental">Quasi-Experimental</option>
+          <option value="case_study">Case Study</option>
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Who Conducts It</label>
+        <select class="field-select" id="ev-conductor">
+          <option value="internal">Internal Team</option>
+          <option value="external">External / Independent</option>
+          <option value="joint">Joint Internal-External</option>
+        </select>
+      </div>
+      <div class="field"><label class="field-label">Planned Timing</label>
+        <input type="text" class="field-input" id="ev-timing" placeholder="e.g. Month 6, Year 2, Q3-2026">
+      </div>
+      <div class="field"><label class="field-label">Planned Date</label>
+        <input type="date" class="field-input" id="ev-date">
+      </div>
+      <div class="field"><label class="field-label">Estimated Budget (USD)</label>
+        <input type="number" class="field-input" id="ev-budget" placeholder="0" min="0">
+      </div>
+      <div class="field"><label class="field-label">Ethics Approval Required?</label>
+        <select class="field-select" id="ev-ethics">
+          <option value="not_required">Not Required</option>
+          <option value="required">Required — to be obtained</option>
+          <option value="obtained">Already Obtained</option>
+        </select>
+      </div>
+      <div class="field span-2"><label class="field-label">Sample Size / Coverage</label>
+        <input type="text" class="field-input" id="ev-sample" placeholder="e.g. 400 HH, 30 communities, purposive sample">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEvalModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvaluation()"><span id="ev-save-icon">✓</span> Save Evaluation</button>
+    </div>
   </div>
 </div>
 
@@ -937,6 +1221,10 @@ function snapshotActivities() {
     act._impact  = document.getElementById('act-impact-' + act.id)?.value ?? act._impact ?? '';
     act._src     = document.getElementById('act-src-'    + act.id)?.value ?? act._src ?? '';
     act._media   = document.getElementById('act-media-'  + act.id)?.value ?? act._media ?? '';
+    act._spend   = document.getElementById('act-spend-'  + act.id)?.value ?? act._spend ?? '';
+    act._resp    = document.getElementById('act-resp-'   + act.id)?.value ?? act._resp ?? '';
+    act._analysis= document.getElementById('act-analysis-'+act.id)?.value ?? act._analysis ?? '';
+    act._review  = document.getElementById('act-review-' + act.id)?.value ?? act._review ?? 'Quarterly';
     act.achievements.forEach(ach => {
       ach._title  = document.getElementById('ach-title-'  + ach.id)?.value ?? ach._title ?? '';
       ach._date   = document.getElementById('ach-date-'   + ach.id)?.value ?? ach._date ?? '';
@@ -1010,7 +1298,24 @@ function updateBudgetBar() {
   }
 }
 
-function renderActivities() {
+function calcActVariance(id) {
+  const budget = parseFloat(document.getElementById('act-budget-' + id)?.value) || 0;
+  const spend  = parseFloat(document.getElementById('act-spend-'  + id)?.value) || 0;
+  const strip  = document.getElementById('act-variance-' + id);
+  const utilEl = document.getElementById('act-util-' + id);
+  const varEl  = document.getElementById('act-var-'  + id);
+  if (!strip) return;
+  if (!budget && !spend) { strip.style.display = 'none'; return; }
+  strip.style.display = 'flex';
+  const util = budget ? Math.round((spend / budget) * 100) : null;
+  const variance = budget - spend;
+  const c = !util ? 'var(--text-muted)' : util >= 100 ? 'var(--red)' : util >= 85 ? 'var(--orange)' : 'var(--green)';
+  utilEl.textContent = util !== null ? util + '% utilised' : '—';
+  utilEl.style.color = c;
+  varEl.textContent  = variance >= 0 ? '$' + variance.toLocaleString() + ' remaining' : '⚠ $' + Math.abs(variance).toLocaleString() + ' over';
+  varEl.style.color  = variance >= 0 ? 'var(--green)' : 'var(--red)';
+  updateBudgetBar();
+}
   const el = document.getElementById('activity-list');
 
   if (!activities.length) {
@@ -1043,6 +1348,9 @@ function renderActivities() {
         <div class="field"><label class="field-label">Activity Budget (USD)</label>
           <input type="number" class="field-input" id="act-budget-${act.id}" placeholder="0.00" min="0" step="0.01" value="${act._budget||''}" oninput="updateBudgetBar()">
         </div>
+        <div class="field"><label class="field-label">Actual Spend (USD)</label>
+          <input type="number" class="field-input" id="act-spend-${act.id}" placeholder="0.00" min="0" step="0.01" value="${act._spend||''}" oninput="calcActVariance(${act.id})">
+        </div>
         <div class="field"><label class="field-label">Collection Frequency</label>
           <select class="field-select" id="act-freq-${act.id}">
             <option ${(act._freq||'Semi-annual')==='Monthly'?'selected':''}>Monthly</option>
@@ -1051,6 +1359,26 @@ function renderActivities() {
             <option ${act._freq==='Annual'?'selected':''}>Annual</option>
           </select>
         </div>
+        <div class="field"><label class="field-label">Responsible (PMP)</label>
+          <input type="text" class="field-input" id="act-resp-${act.id}" placeholder="Person responsible for data collection" value="${(act._resp||'').replace(/"/g,'&quot;')}">
+        </div>
+        <div class="field"><label class="field-label">Analysis Method (PMP)</label>
+          <input type="text" class="field-input" id="act-analysis-${act.id}" placeholder="e.g. Frequency tables, disaggregation by sex" value="${(act._analysis||'').replace(/"/g,'&quot;')}">
+        </div>
+        <div class="field"><label class="field-label">Data Review Frequency</label>
+          <select class="field-select" id="act-review-${act.id}">
+            <option ${(act._review||'Quarterly')==='Monthly'?'selected':''}>Monthly</option>
+            <option ${(act._review||'Quarterly')==='Quarterly'?'selected':''}>Quarterly</option>
+            <option ${act._review==='Semi-annual'?'selected':''}>Semi-annual</option>
+            <option ${act._review==='Annual'?'selected':''}>Annual</option>
+          </select>
+        </div>
+      </div>
+      <!-- Budget variance strip -->
+      <div id="act-variance-${act.id}" style="display:${act._budget&&act._spend?'flex':'none'};align-items:center;gap:16px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;">
+        <div style="flex:1;font-size:12px;color:var(--text-muted);">Budget Utilisation</div>
+        <div style="font-family:var(--font-head);font-size:12px;font-weight:700;" id="act-util-${act.id}">—</div>
+        <div style="font-family:var(--font-head);font-size:12px;font-weight:700;" id="act-var-${act.id}">—</div>
       </div>
 
       <!-- Targets widget -->
@@ -1237,14 +1565,18 @@ async function submitProject() {
     // Use snapshot values captured by snapshotActivities()
     indicators: activities.map(act => ({
       name:                act._name,
-      result_level:        act._level   || 'output',
-      unit_of_measurement: act._unit    || 'Number',
+      result_level:        act._level    || 'output',
+      unit_of_measurement: act._unit     || 'Number',
       data_source:         act._src,
-      baseline_value:      parseFloat(act._base)   || null,
-      overall_target:      parseFloat(act._tgt)    || null,
-      overall_actual:      parseFloat(act._actual) || null,
-      budget_allocation:   parseFloat(act._budget) || null,
+      baseline_value:      parseFloat(act._base)    || null,
+      overall_target:      parseFloat(act._tgt)     || null,
+      overall_actual:      parseFloat(act._actual)  || null,
+      budget_allocation:   parseFloat(act._budget)  || null,
+      actual_spend:        parseFloat(act._spend)   || null,
       impact:              act._impact,
+      collection_responsible: act._resp,
+      analysis_method:     act._analysis,
+      review_frequency:    act._review   || 'Quarterly',
     })),
     milestones: activities.flatMap(act =>
       act.achievements.map(ach => ({
