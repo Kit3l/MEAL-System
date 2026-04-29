@@ -791,6 +791,204 @@ cron.schedule("0 8 * * 1", async () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// LOGFRAME
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/projects/:id/logframe", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("logframe_rows")
+      .select("*")
+      .eq("project_id", req.params.id)
+      .order("sort_order", { ascending: true });
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+app.post("/api/projects/:id/logframe", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("logframe_rows")
+      .insert({ ...req.body, project_id: req.params.id })
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) { err(res, e.message); }
+});
+
+app.patch("/api/logframe/:id", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("logframe_rows")
+      .update(req.body)
+      .eq("id", req.params.id)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+app.delete("/api/logframe/:id", async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from("logframe_rows")
+      .delete()
+      .eq("id", req.params.id);
+    if (error) return dbErr(res, error);
+    ok(res, { deleted: true });
+  } catch (e) { err(res, e.message); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EVALUATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/evaluations", async (req, res) => {
+  try {
+    let q = supabase
+      .from("evaluations")
+      .select("*, projects(title,code)")
+      .order("created_at", { ascending: false });
+    if (req.query.project_id) q = q.eq("project_id", req.query.project_id);
+    const { data, error } = await q;
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+app.post("/api/evaluations", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("evaluations")
+      .insert(req.body)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) { err(res, e.message); }
+});
+
+app.patch("/api/evaluations/:id", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("evaluations")
+      .update(req.body)
+      .eq("id", req.params.id)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+app.delete("/api/evaluations/:id", async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from("evaluations")
+      .delete()
+      .eq("id", req.params.id);
+    if (error) return dbErr(res, error);
+    ok(res, { deleted: true });
+  } catch (e) { err(res, e.message); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEARNING ENTRIES
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/learning", async (req, res) => {
+  try {
+    let q = supabase
+      .from("learning_entries")
+      .select("*, projects(title,code)")
+      .order("created_at", { ascending: false });
+    if (req.query.project_id) q = q.eq("project_id", req.query.project_id);
+    const { data, error } = await q;
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+app.post("/api/learning", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("learning_entries")
+      .insert(req.body)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) { err(res, e.message); }
+});
+
+app.delete("/api/learning/:id", async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from("learning_entries")
+      .delete()
+      .eq("id", req.params.id);
+    if (error) return dbErr(res, error);
+    ok(res, { deleted: true });
+  } catch (e) { err(res, e.message); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DISSEMINATION PLANS
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.get("/api/dissemination", async (req, res) => {
+  try {
+    let q = supabase
+      .from("dissemination_plans")
+      .select("*, projects(title,code)")
+      .order("created_at", { ascending: false });
+    if (req.query.project_id) q = q.eq("project_id", req.query.project_id);
+    const { data, error } = await q;
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+app.post("/api/dissemination", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("dissemination_plans")
+      .insert(req.body)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) { err(res, e.message); }
+});
+
+app.patch("/api/dissemination/:id", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("dissemination_plans")
+      .update(req.body)
+      .eq("id", req.params.id)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+app.delete("/api/dissemination/:id", async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from("dissemination_plans")
+      .delete()
+      .eq("id", req.params.id);
+    if (error) return dbErr(res, error);
+    ok(res, { deleted: true });
+  } catch (e) { err(res, e.message); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // STATIC FILES, HEALTH CHECK & START
 // ─────────────────────────────────────────────────────────────────────────────
 
