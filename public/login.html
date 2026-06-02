@@ -9,102 +9,423 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --black:   #000000;
-  --yellow:  #FFCC29;
-  --maroon:  #AD3335;
-  --green:   #0BBE45;
-  --orange:  #F58634;
-  --bg:      #0A0A0A;
-  --bg-mid:  #111111;
-  --bg-card: #161616;
-  --text-primary:   #F5F5F0;
-  --text-secondary: #9A9A8A;
-  --text-muted:     #4A4A3A;
-  --border:         rgba(255,255,255,0.07);
-  --border-strong:  rgba(255,255,255,0.13);
-  --red:     #E05252;
-  --red-dim: rgba(224,82,82,0.1);
+  --forest:      #327F5A;
+  --forest-dark: #235c40;
+  --forest-dim:  rgba(50,127,90,0.10);
+  --forest-glow: rgba(50,127,90,0.22);
+  --orange:      #E89042;
+  --orange-dark: #c97530;
+  --orange-dim:  rgba(232,144,66,0.12);
+  --orange-glow: rgba(232,144,66,0.28);
+  --maroon:      #AD3335;
+  --maroon-dim:  rgba(173,51,53,0.10);
+  --yellow:      #FFCC29;
+  --yellow-dim:  rgba(255,204,41,0.15);
+  --yellow-dark: #c9a000;
+  --sand:        #f7e6d4;
+  --sand-mid:    #f0dac5;
+  --red:         #D94F4F;
+  --red-dim:     rgba(217,79,79,0.10);
+  --text-primary:   #1a2e1f;
+  --text-secondary: #4a6655;
+  --text-muted:     #8aaa95;
+  --border:         rgba(50,127,90,0.14);
+  --border-strong:  rgba(50,127,90,0.24);
   --font-head: 'Montserrat', sans-serif;
   --font-body: 'DM Sans', sans-serif;
 }
-body { font-family: var(--font-body); background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; line-height: 1.6; }
+
+html { height: 100%; }
+body {
+  font-family: var(--font-body);
+  background: var(--sand);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  line-height: 1.6;
+}
+
+/* ── LEFT PANEL — forest green ── */
 .bg-panel {
-  flex: 1; display: none;
-  background: linear-gradient(135deg, #0A0A0A 0%, #1a0a0a 50%, #0a0a0a 100%);
-  position: relative; overflow: hidden; align-items: center; justify-content: center; padding: 48px;
+  flex: 1;
+  display: none;
+  background: linear-gradient(150deg, var(--forest) 0%, var(--forest-dark) 100%);
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+}
+.bg-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 10%, rgba(255,204,41,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 80% 90%, rgba(232,144,66,0.10) 0%, transparent 60%);
+}
+/* Big decorative MEAL letters in background */
+.bg-panel::after {
+  content: 'MEAL';
+  position: absolute;
+  bottom: -30px;
+  left: -20px;
+  font-family: var(--font-head);
+  font-size: 200px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.04);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
 }
 @media(min-width:900px){ .bg-panel { display: flex; } }
-.bg-panel-inner { text-align: center; position: relative; z-index: 1; }
-.bg-panel-logo { background: #fff; border-radius: 20px; padding: 24px 32px; margin: 0 auto 32px; display: inline-block; }
-.bg-panel-logo img { height: 80px; width: auto; display: block; }
-.bg-panel-title { font-family: var(--font-head); font-size: 28px; font-weight: 900; color: var(--text-primary); margin-bottom: 10px; letter-spacing: -0.02em; line-height: 1.2; }
-.bg-panel-title span { color: var(--yellow); }
-.bg-panel-sub { font-size: 14px; color: var(--text-secondary); font-weight: 300; max-width: 360px; line-height: 1.7; }
-.pillars-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 36px; max-width: 320px; margin-left: auto; margin-right: auto; }
-.pillar-mini { border-radius: 10px; padding: 14px 16px; text-align: left; }
-.pillar-mini-letter { font-family: var(--font-head); font-size: 22px; font-weight: 900; margin-bottom: 2px; }
-.pillar-mini-word { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-.pm { background: rgba(11,190,69,0.1); border: 1px solid rgba(11,190,69,0.2); } .pm .pillar-mini-letter, .pm .pillar-mini-word { color: #0BBE45; }
-.pe { background: rgba(255,204,41,0.1); border: 1px solid rgba(255,204,41,0.2); } .pe .pillar-mini-letter, .pe .pillar-mini-word { color: #FFCC29; }
-.pa { background: rgba(173,51,53,0.1); border: 1px solid rgba(173,51,53,0.2); } .pa .pillar-mini-letter, .pa .pillar-mini-word { color: #AD3335; }
-.pl { background: rgba(245,134,52,0.1); border: 1px solid rgba(245,134,52,0.2); } .pl .pillar-mini-letter, .pl .pillar-mini-word { color: #F58634; }
 
-.login-panel { width: 100%; max-width: 460px; display: flex; flex-direction: column; justify-content: center; padding: 48px 40px; background: var(--bg-mid); border-left: 1px solid var(--border); }
+.bg-panel-inner { text-align: center; position: relative; z-index: 1; max-width: 380px; }
+
+.bg-panel-logo {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px 32px;
+  margin: 0 auto 32px;
+  display: inline-block;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+}
+.bg-panel-logo img { height: 72px; width: auto; display: block; }
+
+.bg-panel-title {
+  font-family: var(--font-head);
+  font-size: 30px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.bg-panel-title .accent { color: var(--yellow); }
+
+.bg-panel-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 300;
+  max-width: 320px;
+  line-height: 1.75;
+  margin: 0 auto 36px;
+}
+
+/* MEAL pillars mini grid */
+.pillars-mini {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.pillar-mini {
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  backdrop-filter: blur(4px);
+}
+.pillar-mini-letter {
+  font-family: var(--font-head);
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 2px;
+  line-height: 1;
+}
+.pillar-mini-word {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--font-head);
+}
+.pm { background: rgba(50,200,120,0.15); border: 1px solid rgba(50,200,120,0.25); }
+.pm .pillar-mini-letter, .pm .pillar-mini-word { color: #7de8b0; }
+.pe { background: rgba(255,204,41,0.12); border: 1px solid rgba(255,204,41,0.22); }
+.pe .pillar-mini-letter, .pe .pillar-mini-word { color: var(--yellow); }
+.pa { background: rgba(217,100,100,0.12); border: 1px solid rgba(217,100,100,0.22); }
+.pa .pillar-mini-letter, .pa .pillar-mini-word { color: #f0a0a0; }
+.pl { background: rgba(232,144,66,0.15); border: 1px solid rgba(232,144,66,0.25); }
+.pl .pillar-mini-letter, .pl .pillar-mini-word { color: #f8c090; }
+
+/* Thematic areas strip */
+.thematic-strip {
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.thematic-item {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.7);
+  font-family: var(--font-head);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.thematic-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* ── RIGHT PANEL — login form ── */
+.login-panel {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 56px 48px;
+  background: #ffffff;
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 24px rgba(50,127,90,0.06);
+}
+
+/* Mobile logo */
 .login-logo-mobile { display: block; margin-bottom: 32px; }
 @media(min-width:900px){ .login-logo-mobile { display: none; } }
-.login-logo-mobile img { height: 52px; width: auto; background: #fff; border-radius: 10px; padding: 4px 8px; }
-.login-title { font-family: var(--font-head); font-size: 26px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 4px; }
-.login-sub { font-size: 13.5px; color: var(--text-secondary); font-weight: 300; margin-bottom: 32px; }
-.field { margin-bottom: 16px; }
-.field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.04em; margin-bottom: 6px; font-family: var(--font-head); }
-.field input { width: 100%; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: 9px; color: var(--text-primary); font-family: var(--font-body); font-size: 14px; padding: 12px 14px; outline: none; transition: border-color 0.14s, box-shadow 0.14s; }
+.login-logo-mobile img {
+  height: 52px; width: auto;
+  background: #fff; border-radius: 10px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+}
+
+/* Accent bar */
+.accent-bar {
+  display: flex; gap: 0; margin-bottom: 28px;
+  border-radius: 3px; overflow: hidden; width: 48px; height: 5px;
+}
+.accent-bar-m { flex: 1; background: var(--forest); }
+.accent-bar-e { flex: 1; background: var(--yellow); }
+.accent-bar-a { flex: 1; background: var(--maroon); }
+.accent-bar-l { flex: 1; background: var(--orange); }
+
+.login-title {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--forest-dark);
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 300;
+  margin-bottom: 36px;
+}
+
+/* Form fields */
+.field { margin-bottom: 18px; }
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+  font-family: var(--font-head);
+}
+.field input {
+  width: 100%;
+  background: var(--sand);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 13px 16px;
+  outline: none;
+  transition: border-color 0.14s, box-shadow 0.14s, background 0.14s;
+}
 .field input::placeholder { color: var(--text-muted); }
-.field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(11,190,69,0.12); }
-.btn { width: 100%; padding: 13px; border-radius: 9px; font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.14s; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.btn-primary { background: var(--green); color: #fff; margin-bottom: 12px; }
-.btn-primary:hover { background: #09a83c; }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-google { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-strong); }
-.btn-google:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
-.divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; font-size: 12px; color: var(--text-muted); }
+.field input:focus {
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px var(--forest-dim);
+  background: #fff;
+}
+
+/* Forgot link */
+.forgot-link {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-top: -12px;
+  margin-bottom: 22px;
+  transition: color 0.14s;
+  font-family: var(--font-head);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.forgot-link:hover { color: var(--orange-dark); }
+
+/* Buttons */
+.btn-signin {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.14s;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--forest);
+  color: #fff;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(50,127,90,0.3);
+  letter-spacing: 0.01em;
+}
+.btn-signin:hover { background: var(--forest-dark); box-shadow: 0 6px 20px rgba(50,127,90,0.4); transform: translateY(-1px); }
+.btn-signin:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn-google {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.14s;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-google:hover { background: var(--forest-dim); border-color: var(--forest-glow); color: var(--forest-dark); }
+
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 18px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-head);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.error-box { background: var(--red-dim); border: 1px solid rgba(224,82,82,0.25); border-radius: 9px; padding: 11px 14px; font-size: 13px; color: var(--red); margin-bottom: 16px; display: none; }
+
+/* Alerts */
+.error-box {
+  background: var(--red-dim);
+  border: 1px solid rgba(217,79,79,0.25);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--red);
+  margin-bottom: 18px;
+  display: none;
+}
 .error-box.show { display: block; }
-.success-box { background: rgba(11,190,69,0.1); border: 1px solid rgba(11,190,69,0.25); border-radius: 9px; padding: 11px 14px; font-size: 13px; color: #0BBE45; margin-bottom: 16px; display: none; }
+.success-box {
+  background: var(--forest-dim);
+  border: 1px solid var(--forest-glow);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--forest);
+  margin-bottom: 18px;
+  display: none;
+}
 .success-box.show { display: block; }
-.forgot-link { display: block; text-align: right; font-size: 12px; color: var(--text-muted); text-decoration: none; margin-top: -10px; margin-bottom: 20px; transition: color 0.14s; }
-.forgot-link:hover { color: var(--yellow); }
-.footer-note { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 28px; line-height: 1.7; }
-.footer-note a { color: var(--yellow); text-decoration: none; }
-.footer-note a:hover { text-decoration: underline; }
-.spinner { width: 16px; height: 16px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.7s linear infinite; }
+
+/* Footer note */
+.footer-note {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 32px;
+  line-height: 1.75;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.footer-note a { color: var(--forest); text-decoration: none; font-weight: 600; }
+.footer-note a:hover { color: var(--orange-dark); }
+
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
-.accent-bar { width: 40px; height: 4px; border-radius: 2px; background: var(--green); margin-bottom: 20px; }
+
+/* Top accent stripe */
+.dlci-stripe {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  height: 4px;
+  background: linear-gradient(to right, #AD3335 25%, #FFCC29 25% 50%, #327F5A 50% 75%, #E89042 75%);
+}
+
+@media(max-width:899px){
+  .login-panel { padding: 48px 28px; max-width: 100%; }
+}
 </style>
 </head>
 <body>
 
-<!-- LEFT PANEL -->
+<div class="dlci-stripe"></div>
+
+<!-- ── LEFT PANEL ── -->
 <div class="bg-panel">
   <div class="bg-panel-inner">
-    <div class="bg-panel-logo"><img src="dlci-logo.png" alt="DLCI" class="brand-logo-img"></div>
-    <div class="bg-panel-title">DLCI <span style="color:var(--green);">MEAL</span> System</div>
-    <p class="bg-panel-sub">Monitoring, Evaluation, Accountability and Learning for DLCI Programmes across Kenya and The Horn of Africa.</p>
+    <div class="bg-panel-logo">
+      <img src="dlci-logo.png" alt="DLCI">
+    </div>
+    <div class="bg-panel-title">DLCI <span class="accent">MEAL</span> System</div>
+    <p class="bg-panel-sub">Monitoring, Evaluation, Accountability and Learning for DLCI Programmes across Kenya and the Horn of Africa.</p>
+
     <div class="pillars-mini">
       <div class="pillar-mini pm"><div class="pillar-mini-letter">M</div><div class="pillar-mini-word">Monitoring</div></div>
       <div class="pillar-mini pe"><div class="pillar-mini-letter">E</div><div class="pillar-mini-word">Evaluation</div></div>
       <div class="pillar-mini pa"><div class="pillar-mini-letter">A</div><div class="pillar-mini-word">Accountability</div></div>
       <div class="pillar-mini pl"><div class="pillar-mini-letter">L</div><div class="pillar-mini-word">Learning</div></div>
     </div>
+
+    <div class="thematic-strip">
+      <div class="thematic-item"><div class="thematic-dot" style="background:var(--forest-glow);border:1px solid #7de8b0;"></div>Natural Resource Governance</div>
+      <div class="thematic-item"><div class="thematic-dot" style="background:var(--yellow);"></div>Climate Change Resilience &amp; Adaptation</div>
+      <div class="thematic-item"><div class="thematic-dot" style="background:var(--orange);"></div>Policy Advocacy</div>
+    </div>
   </div>
 </div>
 
-<!-- RIGHT PANEL — LOGIN -->
+<!-- ── RIGHT PANEL ── -->
 <div class="login-panel">
+
   <div class="login-logo-mobile">
-  <img src="dlci-logo.png" alt="DLCI" class="brand-logo-img">
-</div>
-  <div class="accent-bar"></div>
+    <img src="dlci-logo.png" alt="DLCI">
+  </div>
+
+  <div class="accent-bar">
+    <div class="accent-bar-m"></div>
+    <div class="accent-bar-e"></div>
+    <div class="accent-bar-a"></div>
+    <div class="accent-bar-l"></div>
+  </div>
+
   <div class="login-title">Welcome back</div>
   <div class="login-sub">Sign in to access the DLCI MEAL dashboard</div>
 
@@ -119,16 +440,22 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
     <label>Password</label>
     <input type="password" id="password" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter') signIn()">
   </div>
+
   <a href="#" class="forgot-link" onclick="forgotPassword(); return false;">Forgot password?</a>
 
-  <button class="btn btn-primary" id="signin-btn" onclick="signIn()">
+  <button class="btn-signin" id="signin-btn" onclick="signIn()">
     <span id="signin-label">Sign In to DLCI MEAL</span>
   </button>
 
   <div class="divider">or</div>
 
-  <button class="btn btn-google" onclick="signInGoogle()">
-    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+  <button class="btn-google" onclick="signInGoogle()">
+    <svg width="16" height="16" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
     Continue with Google
   </button>
 
@@ -136,6 +463,7 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
     <a href="landing.html">← Back to DLCI home</a><br><br>
     Access is by invitation only. Contact your DLCI system administrator if you need an account.
   </div>
+
 </div>
 
 <script>
@@ -155,10 +483,12 @@ function showSuccess(msg) {
   document.getElementById('error-box').classList.remove('show');
 }
 function setLoading(loading) {
-  const btn = document.getElementById('signin-btn');
+  const btn   = document.getElementById('signin-btn');
   const label = document.getElementById('signin-label');
   btn.disabled = loading;
-  label.innerHTML = loading ? '<span class="spinner"></span> Signing in…' : 'Sign In to DLCI MEAL';
+  label.innerHTML = loading
+    ? '<span class="spinner"></span> Signing in…'
+    : 'Sign In to DLCI MEAL';
 }
 
 async function signIn() {
@@ -188,11 +518,14 @@ async function signInGoogle() {
 async function forgotPassword() {
   const email = document.getElementById('email').value.trim();
   if (!email) { showError('Enter your email address above first, then click Forgot password.'); return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/login.html' });
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/login.html'
+  });
   if (error) showError(error.message);
   else showSuccess('Password reset email sent. Check your inbox.');
 }
 
+// Redirect if already signed in
 sb.auth.getSession().then(({ data: { session } }) => {
   if (session) window.location.href = 'index.html';
 });

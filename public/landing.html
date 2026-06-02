@@ -8,145 +8,177 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --black:   #000000;
-  --yellow:  #FFCC29;
-  --maroon:  #AD3335;
-  --green:   #0BBE45;
-  --orange:  #F58634;
-  --yellow-dim: rgba(255,204,41,0.12);
-  --maroon-dim: rgba(173,51,53,0.1);
-  --green-dim:  rgba(11,190,69,0.1);
-  --orange-dim: rgba(245,134,52,0.1);
-  --bg:      #0A0A0A;
-  --bg-mid:  #111111;
-  --bg-card: #161616;
-  --text-primary:   #F5F5F0;
-  --text-secondary: #9A9A8A;
-  --text-muted:     #4A4A3A;
-  --border:         rgba(255,255,255,0.07);
-  --border-strong:  rgba(255,255,255,0.13);
+  --forest:      #327F5A;
+  --forest-dark: #235c40;
+  --forest-dim:  rgba(50,127,90,0.10);
+  --forest-glow: rgba(50,127,90,0.22);
+  --orange:      #E89042;
+  --orange-dark: #c97530;
+  --orange-dim:  rgba(232,144,66,0.12);
+  --orange-glow: rgba(232,144,66,0.25);
+  --maroon:      #AD3335;
+  --maroon-dim:  rgba(173,51,53,0.10);
+  --yellow:      #FFCC29;
+  --yellow-dim:  rgba(255,204,41,0.15);
+  --yellow-dark: #c9a000;
+  --sand:        #f7e6d4;
+  --sand-mid:    #f0dac5;
+  --sand-dark:   #e8cdb0;
+  --bg:          #f7e6d4;
+  --bg-card:     #ffffff;
+  --text-primary:   #1a2e1f;
+  --text-secondary: #4a6655;
+  --text-muted:     #8aaa95;
+  --border:         rgba(50,127,90,0.12);
+  --border-strong:  rgba(50,127,90,0.22);
   --font-head: 'Montserrat', sans-serif;
   --font-body: 'DM Sans', sans-serif;
 }
 html { scroll-behavior: smooth; }
 body { font-family: var(--font-body); background: var(--bg); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; }
 
+/* ── NAV ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 48px; height: 70px;
-  background: rgba(10,10,10,0.92); backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(50,127,90,0.97); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 2px 20px rgba(35,92,64,0.25);
 }
 .nav-logo { display: flex; align-items: center; gap: 14px; text-decoration: none; }
-.nav-logo img { height: 44px; width: auto; object-fit: contain; }
+.nav-logo img { height: 44px; width: auto; object-fit: contain; background: #fff; border-radius: 8px; padding: 3px 7px; }
 .nav-logo-text { display: flex; flex-direction: column; }
-.nav-logo-name { font-family: var(--font-head); font-size: 15px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.01em; line-height: 1.1; }
+.nav-logo-name { font-family: var(--font-head); font-size: 15px; font-weight: 800; color: #ffffff; letter-spacing: -0.01em; line-height: 1.1; }
 .nav-logo-sub  { font-size: 10px; color: var(--yellow); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
 .nav-links { display: flex; align-items: center; gap: 32px; }
-.nav-links a { font-size: 13.5px; color: var(--text-secondary); text-decoration: none; transition: color 0.14s; }
-.nav-links a:hover { color: var(--text-primary); }
+.nav-links a { font-size: 13.5px; color: rgba(255,255,255,0.75); text-decoration: none; transition: color 0.14s; }
+.nav-links a:hover { color: #ffffff; }
 .nav-cta { display: flex; gap: 10px; }
 .btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 22px; border-radius: 8px; font-family: var(--font-body); font-size: 13.5px; font-weight: 500; cursor: pointer; transition: all 0.14s; text-decoration: none; border: none; white-space: nowrap; }
-.btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-strong); }
-.btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
-.btn-primary { background: var(--green); color: #fff; font-weight: 600; }
-.btn-primary:hover { background: #09a83c; }
+.btn-ghost { background: rgba(255,255,255,0.12); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); }
+.btn-ghost:hover { background: rgba(255,255,255,0.2); }
+.btn-primary { background: var(--orange); color: #fff; font-weight: 700; box-shadow: 0 2px 8px rgba(232,144,66,0.4); }
+.btn-primary:hover { background: var(--orange-dark); }
 
+/* ── HERO ── */
 .hero {
   min-height: 100vh; display: flex; align-items: center; justify-content: center;
   text-align: center; padding: 140px 24px 100px; position: relative;
+  background: linear-gradient(160deg, #f7e6d4 0%, #f0dac5 40%, #e8f4ee 100%);
 }
 .hero-bg {
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,204,41,0.05) 0%, transparent 65%),
-              radial-gradient(ellipse 50% 40% at 80% 80%, rgba(11,190,69,0.04) 0%, transparent 60%);
-  pointer-events: none;
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(50,127,90,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 70%, rgba(232,144,66,0.10) 0%, transparent 60%);
 }
-.hero-inner { position: relative; max-width: 800px; margin: 0 auto; }
+.hero-inner { position: relative; max-width: 820px; margin: 0 auto; }
 .hero-badge {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--yellow-dim); border: 1px solid rgba(255,204,41,0.3);
+  background: var(--forest-dim); border: 1px solid var(--forest-glow);
   border-radius: 100px; padding: 6px 18px; font-size: 11.5px; font-weight: 700;
-  color: var(--yellow); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 32px;
+  color: var(--forest); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 32px;
+  font-family: var(--font-head);
 }
-.hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); animation: pulse 2s infinite; }
+.hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--forest); animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 .hero-title {
-  font-family: var(--font-head); font-size: clamp(36px,6vw,62px); font-weight: 900;
-  line-height: 1.08; letter-spacing: -0.03em; color: var(--text-primary); margin-bottom: 10px;
+  font-family: var(--font-head); font-size: clamp(36px,6vw,64px); font-weight: 900;
+  line-height: 1.06; letter-spacing: -0.03em; color: var(--forest-dark); margin-bottom: 10px;
 }
-.hero-title .accent-yellow { color: var(--yellow); }
-.hero-title .accent-green  { color: var(--green); }
+.hero-title .accent-orange { color: var(--orange-dark); }
+.hero-title .accent-green  { color: var(--forest); }
 .hero-org {
-  font-family: var(--font-head); font-size: clamp(13px,2vw,16px); font-weight: 600;
-  color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px;
+  font-family: var(--font-head); font-size: clamp(12px,1.8vw,15px); font-weight: 700;
+  color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px;
 }
 .hero-sub {
   font-size: clamp(15px,2vw,18px); color: var(--text-secondary); font-weight: 300;
-  max-width: 580px; margin: 0 auto 44px; line-height: 1.75;
+  max-width: 580px; margin: 0 auto 44px; line-height: 1.8;
 }
 .hero-actions { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
-.btn-hero { padding: 15px 36px; font-size: 15px; border-radius: 10px; }
+.btn-hero { padding: 15px 36px; font-size: 15px; border-radius: 10px; font-weight: 700; }
+.btn-hero-outline { background: transparent; color: var(--forest); border: 2px solid var(--forest); border-radius: 10px; padding: 13px 34px; font-size: 15px; font-weight: 700; font-family: var(--font-body); text-decoration: none; display: inline-flex; align-items: center; transition: all 0.14s; }
+.btn-hero-outline:hover { background: var(--forest-dim); }
 .hero-logo-display {
-  margin: 60px auto 0; max-width: 260px;
-  background: #fff; border-radius: 16px; padding: 20px 28px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  margin: 60px auto 0; max-width: 220px;
+  background: #fff; border-radius: 18px; padding: 20px 28px;
+  box-shadow: 0 12px 40px rgba(50,127,90,0.16), 0 2px 8px rgba(50,127,90,0.08);
+  border: 1px solid var(--border);
 }
 .hero-logo-display img { width: 100%; height: auto; }
 
-.section { padding: 96px 24px; max-width: 1100px; margin: 0 auto; }
-.section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--yellow); margin-bottom: 12px; font-family: var(--font-head); }
-.section-title { font-family: var(--font-head); font-size: clamp(26px,4vw,40px); font-weight: 800; letter-spacing: -0.02em; color: var(--text-primary); margin-bottom: 14px; line-height: 1.15; }
-.section-sub { font-size: 16px; color: var(--text-secondary); font-weight: 300; max-width: 520px; line-height: 1.75; }
+/* ── STRIPE ── */
+.dlci-stripe { height: 5px; background: linear-gradient(to right, var(--maroon) 25%, var(--yellow) 25% 50%, var(--forest) 50% 75%, var(--orange) 75%); }
 
+/* ── SECTIONS ── */
+.section { padding: 96px 24px; max-width: 1100px; margin: 0 auto; }
+.section-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange-dark); margin-bottom: 12px; font-family: var(--font-head); }
+.section-title { font-family: var(--font-head); font-size: clamp(26px,4vw,40px); font-weight: 800; letter-spacing: -0.02em; color: var(--forest-dark); margin-bottom: 14px; line-height: 1.15; }
+.section-sub { font-size: 16px; color: var(--text-secondary); font-weight: 300; max-width: 520px; line-height: 1.8; }
+
+/* ── PILLARS ── */
 .pillars { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-top: 56px; }
-.pillar { border-radius: 14px; padding: 26px 22px; text-align: center; }
-.pillar-letter { font-family: var(--font-head); font-size: 52px; font-weight: 900; line-height: 1; margin-bottom: 10px; }
+.pillar { border-radius: 16px; padding: 28px 22px; text-align: center; }
+.pillar-letter { font-family: var(--font-head); font-size: 56px; font-weight: 900; line-height: 1; margin-bottom: 10px; }
 .pillar-word { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; font-family: var(--font-head); }
 .pillar-desc { font-size: 12.5px; line-height: 1.65; font-weight: 300; }
-.pillar-m { background: rgba(11,190,69,0.08); border: 1px solid rgba(11,190,69,0.2); }
-.pillar-m .pillar-letter, .pillar-m .pillar-word { color: var(--green); }
-.pillar-m .pillar-desc { color: rgba(11,190,69,0.65); }
-.pillar-e { background: rgba(255,204,41,0.08); border: 1px solid rgba(255,204,41,0.2); }
-.pillar-e .pillar-letter, .pillar-e .pillar-word { color: var(--yellow); }
-.pillar-e .pillar-desc { color: rgba(255,204,41,0.65); }
-.pillar-a { background: rgba(173,51,53,0.08); border: 1px solid rgba(173,51,53,0.2); }
+.pillar-m { background: var(--forest-dim); border: 1px solid var(--forest-glow); }
+.pillar-m .pillar-letter, .pillar-m .pillar-word { color: var(--forest); }
+.pillar-m .pillar-desc { color: var(--text-secondary); }
+.pillar-e { background: var(--yellow-dim); border: 1px solid rgba(255,204,41,0.3); }
+.pillar-e .pillar-letter, .pillar-e .pillar-word { color: var(--yellow-dark); }
+.pillar-e .pillar-desc { color: var(--text-secondary); }
+.pillar-a { background: var(--maroon-dim); border: 1px solid rgba(173,51,53,0.2); }
 .pillar-a .pillar-letter, .pillar-a .pillar-word { color: var(--maroon); }
-.pillar-a .pillar-desc { color: rgba(173,51,53,0.65); }
-.pillar-l { background: rgba(245,134,52,0.08); border: 1px solid rgba(245,134,52,0.2); }
-.pillar-l .pillar-letter, .pillar-l .pillar-word { color: var(--orange); }
-.pillar-l .pillar-desc { color: rgba(245,134,52,0.65); }
+.pillar-a .pillar-desc { color: var(--text-secondary); }
+.pillar-l { background: var(--orange-dim); border: 1px solid var(--orange-glow); }
+.pillar-l .pillar-letter, .pillar-l .pillar-word { color: var(--orange-dark); }
+.pillar-l .pillar-desc { color: var(--text-secondary); }
 
+/* ── FEATURES ── */
+.features-bg { background: #ffffff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 56px; }
-.feature-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 26px; transition: border-color 0.2s; }
-.feature-card:hover { border-color: var(--yellow); }
-.feature-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.feature-card { background: var(--sand); border: 1px solid var(--border); border-radius: 14px; padding: 26px; transition: all 0.2s; }
+.feature-card:hover { border-color: var(--forest-glow); box-shadow: 0 4px 16px rgba(50,127,90,0.12); transform: translateY(-2px); }
+.feature-icon { width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
 .feature-icon svg { width: 20px; height: 20px; }
-.feature-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.feature-title { font-family: var(--font-head); font-size: 15px; font-weight: 700; color: var(--forest-dark); margin-bottom: 8px; }
 .feature-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.65; font-weight: 300; }
 
+/* ── HOW IT WORKS ── */
 .how-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; margin-top: 56px; position: relative; }
-.how-grid::before { content: ''; position: absolute; top: 28px; left: 12%; right: 12%; height: 1px; background: linear-gradient(to right, transparent, var(--border-strong), transparent); }
+.how-grid::before { content: ''; position: absolute; top: 28px; left: 12%; right: 12%; height: 2px; background: linear-gradient(to right, var(--forest-dim), var(--forest-glow), var(--forest-dim)); }
 .how-step { text-align: center; padding: 0 16px; }
-.how-num { width: 56px; height: 56px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-family: var(--font-head); font-size: 18px; font-weight: 800; color: #fff; position: relative; z-index: 1; }
-.how-title { font-family: var(--font-head); font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
-.how-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
+.how-num { width: 56px; height: 56px; border-radius: 50%; background: var(--forest); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-family: var(--font-head); font-size: 18px; font-weight: 800; color: #fff; position: relative; z-index: 1; box-shadow: 0 4px 14px rgba(50,127,90,0.35); }
+.how-title { font-family: var(--font-head); font-size: 13.5px; font-weight: 700; color: var(--forest-dark); margin-bottom: 8px; }
+.how-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.65; }
 
-.cta-section {
-  margin: 0 auto 96px; max-width: 1052px; padding: 0 24px;
-}
+/* ── CTA ── */
+.cta-section { margin: 0 auto 96px; max-width: 1052px; padding: 0 24px; }
 .cta-inner {
-  background: linear-gradient(135deg, rgba(11,190,69,0.08) 0%, rgba(255,204,41,0.06) 100%);
-  border: 1px solid rgba(11,190,69,0.25); border-radius: 24px; padding: 72px 48px; text-align: center;
+  background: linear-gradient(135deg, var(--forest) 0%, var(--forest-dark) 100%);
+  border-radius: 24px; padding: 72px 48px; text-align: center;
+  box-shadow: 0 20px 60px rgba(50,127,90,0.25);
+  position: relative; overflow: hidden;
 }
-.cta-title { font-family: var(--font-head); font-size: clamp(26px,4vw,40px); font-weight: 900; letter-spacing: -0.02em; color: var(--text-primary); margin-bottom: 14px; }
-.cta-sub { font-size: 16px; color: var(--text-secondary); font-weight: 300; margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.7; }
+.cta-inner::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 80% 20%, rgba(255,204,41,0.12) 0%, transparent 60%);
+}
+.cta-title { font-family: var(--font-head); font-size: clamp(26px,4vw,40px); font-weight: 900; letter-spacing: -0.02em; color: #ffffff; margin-bottom: 14px; position: relative; }
+.cta-sub { font-size: 16px; color: rgba(255,255,255,0.75); font-weight: 300; margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.7; position: relative; }
+.btn-cta { background: var(--orange); color: #fff; padding: 15px 40px; font-size: 15px; font-weight: 700; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; font-family: var(--font-body); transition: all 0.14s; position: relative; box-shadow: 0 4px 16px rgba(232,144,66,0.5); }
+.btn-cta:hover { background: var(--orange-dark); transform: translateY(-1px); }
 
-footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+/* ── FOOTER ── */
+footer { background: var(--forest-dark); border-top: none; padding: 32px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .footer-brand { display: flex; align-items: center; gap: 12px; }
 .footer-brand img { height: 36px; width: auto; background: #fff; border-radius: 6px; padding: 3px 6px; }
-.footer-copy { font-size: 12px; color: var(--text-muted); }
+.footer-brand-name { font-family: var(--font-head); font-size: 13px; font-weight: 700; color: #ffffff; }
+.footer-brand-sub { font-size: 11px; color: rgba(255,255,255,0.5); }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,0.4); }
 
 @media(max-width:768px){
   nav { padding: 0 20px; }
@@ -156,15 +188,18 @@ footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex;
   .how-grid::before { display: none; }
   .pillars { grid-template-columns: 1fr 1fr; }
   .cta-inner { padding: 48px 24px; }
-  footer { padding: 24px 20px; }
+  footer { padding: 24px 20px; flex-direction: column; text-align: center; }
 }
 </style>
 </head>
 <body>
 
+<div class="dlci-stripe"></div>
+
 <nav>
   <a href="#" class="nav-logo">
-<img src="dlci-logo.png" alt="DLCI" class="brand-logo-img"><div class="nav-logo-text">
+    <img src="dlci-logo.png" alt="DLCI">
+    <div class="nav-logo-text">
       <span class="nav-logo-name">DLCI MEAL System</span>
       <span class="nav-logo-sub">Monitoring · Evaluation · Accountability · Learning</span>
     </div>
@@ -186,16 +221,17 @@ footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex;
     <div class="hero-badge"><div class="hero-badge-dot"></div>Drylands Learning and Capacity Building Initiative</div>
     <h1 class="hero-title">
       <span class="accent-green">MEAL</span> System for<br>
-      <span class="accent-green">Drylands</span> Programmes
+      <span class="accent-orange">Drylands</span> Programmes
     </h1>
     <div class="hero-org">Drylands Learning and Capacity Building Initiative</div>
     <p class="hero-sub">A purpose-built monitoring, evaluation, accountability and learning platform for DLCI programmes across Kenya's drylands and the Horn of Africa.</p>
     <div class="hero-actions">
       <a href="login.html" class="btn btn-primary btn-hero">Access the System</a>
-      <a href="#features" class="btn btn-ghost btn-hero">Learn More</a>
+      <a href="#features" class="btn-hero-outline">Learn More</a>
     </div>
     <div class="hero-logo-display">
-<img src="dlci-logo.png" alt="DLCI" class="brand-logo-img">    </div>
+      <img src="dlci-logo.png" alt="DLCI">
+    </div>
   </div>
 </section>
 
@@ -204,60 +240,94 @@ footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex;
   <h2 class="section-title">The Four Pillars of MEAL</h2>
   <p class="section-sub">Every feature is designed around the four core components of DLCI's monitoring and learning framework.</p>
   <div class="pillars">
-    <div class="pillar pillar-m"><div class="pillar-letter">M</div><div class="pillar-word">Monitoring</div><div class="pillar-desc">Track indicators, targets, and actuals across all DLCI programmes in real time with traffic-light dashboards.</div></div>
-    <div class="pillar pillar-e"><div class="pillar-letter">E</div><div class="pillar-word">Evaluation</div><div class="pillar-desc">Measure achievement rates, generate donor reports, and assess programme effectiveness across the drylands.</div></div>
-    <div class="pillar pillar-a"><div class="pillar-letter">A</div><div class="pillar-word">Accountability</div><div class="pillar-desc">Full audit logs, role-based access, and transparent data trails for every entry across DLCI programmes.</div></div>
-    <div class="pillar pillar-l"><div class="pillar-letter">L</div><div class="pillar-word">Learning</div><div class="pillar-desc">Capture lessons learned, best practices, and reflections to strengthen future drylands programming.</div></div>
-  </div>
-</section>
-
-<section class="section" id="features" style="padding-top:0;">
-  <div class="section-eyebrow">Features</div>
-  <h2 class="section-title">Everything DLCI needs in one system</h2>
-  <p class="section-sub">From field data collection in remote drylands to donor reporting — all in one secure platform.</p>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon" style="background:var(--green-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#0BBE45" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-      <div class="feature-title">Live indicator tracking</div>
-      <div class="feature-desc">Baseline, target, and actual values with automatic achievement rate calculation and traffic-light status across all programmes.</div>
+    <div class="pillar pillar-m">
+      <div class="pillar-letter">M</div>
+      <div class="pillar-word">Monitoring</div>
+      <div class="pillar-desc">Track indicators, targets, and actuals across all DLCI programmes in real time with traffic-light dashboards.</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:var(--orange-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#F58634" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-      <div class="feature-title">KoboToolbox integration</div>
-      <div class="feature-desc">Field data collected by DLCI teams on mobile phones syncs automatically into the database — even from remote drylands areas.</div>
+    <div class="pillar pillar-e">
+      <div class="pillar-letter">E</div>
+      <div class="pillar-word">Evaluation</div>
+      <div class="pillar-desc">Measure achievement rates, generate donor reports, and assess programme effectiveness across the drylands.</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:var(--yellow-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#FFCC29" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
-      <div class="feature-title">Portfolio dashboard</div>
-      <div class="feature-desc">See all DLCI projects, achievement rates, overdue milestones, and high risks at a glance across the entire portfolio.</div>
+    <div class="pillar pillar-a">
+      <div class="pillar-letter">A</div>
+      <div class="pillar-word">Accountability</div>
+      <div class="pillar-desc">Full audit logs, role-based access, and transparent data trails for every entry across DLCI programmes.</div>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:var(--maroon-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#AD3335" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
-      <div class="feature-title">Risk register</div>
-      <div class="feature-desc">Log risks and assumptions with likelihood and impact scoring, mitigation strategies, and responsible person assignment.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:var(--orange-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#F58634" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
-      <div class="feature-title">Learning module</div>
-      <div class="feature-desc">Document lessons learned, best practices, and programme adaptations — the often-missing L in MEAL, central to DLCI's mission.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:var(--green-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#0BBE45" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-      <div class="feature-title">Secure &amp; invite-only</div>
-      <div class="feature-desc">Row-level security, invite-only access, full audit logging. Your beneficiary data and programme information stays protected.</div>
+    <div class="pillar pillar-l">
+      <div class="pillar-letter">L</div>
+      <div class="pillar-word">Learning</div>
+      <div class="pillar-desc">Capture lessons learned, best practices, and reflections to strengthen future drylands programming.</div>
     </div>
   </div>
 </section>
 
-<section class="section" id="how" style="padding-top:0;">
+<div class="features-bg">
+  <section class="section" id="features" style="padding-top:80px;padding-bottom:80px;">
+    <div class="section-eyebrow">Features</div>
+    <h2 class="section-title">Everything DLCI needs in one system</h2>
+    <p class="section-sub">From field data collection in remote drylands to donor reporting — all in one secure platform.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--forest-dim);border:1px solid var(--forest-glow);"><svg viewBox="0 0 24 24" fill="none" stroke="#327F5A" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="feature-title">Live indicator tracking</div>
+        <div class="feature-desc">Baseline, target, and actual values with automatic achievement rate calculation and traffic-light status across all programmes.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--orange-dim);border:1px solid var(--orange-glow);"><svg viewBox="0 0 24 24" fill="none" stroke="#E89042" stroke-width="1.8"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div class="feature-title">KoboToolbox integration</div>
+        <div class="feature-desc">Field data collected by DLCI teams on mobile phones syncs automatically into the database — even from remote drylands areas.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--yellow-dim);border:1px solid rgba(255,204,41,0.3);"><svg viewBox="0 0 24 24" fill="none" stroke="#c9a000" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+        <div class="feature-title">Portfolio dashboard</div>
+        <div class="feature-desc">See all DLCI projects, achievement rates, overdue milestones, and high risks at a glance across the entire portfolio.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--maroon-dim);border:1px solid rgba(173,51,53,0.2);"><svg viewBox="0 0 24 24" fill="none" stroke="#AD3335" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+        <div class="feature-title">Risk register</div>
+        <div class="feature-desc">Log risks and assumptions with likelihood and impact scoring, mitigation strategies, and responsible person assignment.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--orange-dim);border:1px solid var(--orange-glow);"><svg viewBox="0 0 24 24" fill="none" stroke="#E89042" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <div class="feature-title">Learning module</div>
+        <div class="feature-desc">Document lessons learned, best practices, and programme adaptations — the often-missing L in MEAL, central to DLCI's mission.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--forest-dim);border:1px solid var(--forest-glow);"><svg viewBox="0 0 24 24" fill="none" stroke="#327F5A" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="feature-title">Secure &amp; invite-only</div>
+        <div class="feature-desc">Row-level security, invite-only access, full audit logging. Your beneficiary data and programme information stays protected.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="section" id="how">
   <div class="section-eyebrow">How it works</div>
   <h2 class="section-title">From the field to the dashboard</h2>
   <p class="section-sub">Data flows automatically from DLCI field teams into a live dashboard leadership can trust.</p>
   <div class="how-grid">
-    <div class="how-step"><div class="how-num">1</div><div class="how-title">Field collection</div><div class="how-desc">DLCI program officers collect data on KoboToolbox — even offline in remote drylands areas.</div></div>
-    <div class="how-step"><div class="how-num">2</div><div class="how-title">Auto sync</div><div class="how-desc">Data syncs to the secure database the moment connectivity is available.</div></div>
-    <div class="how-step"><div class="how-num">3</div><div class="how-title">Live dashboard</div><div class="how-desc">M&E officers see updated indicators, milestones, and risk scores in real time.</div></div>
-    <div class="how-step"><div class="how-num">4</div><div class="how-title">Donor reports</div><div class="how-desc">Generate Excel and PDF progress reports in one click — ready for donors and leadership.</div></div>
+    <div class="how-step">
+      <div class="how-num">1</div>
+      <div class="how-title">Field collection</div>
+      <div class="how-desc">DLCI program officers collect data on KoboToolbox — even offline in remote drylands areas.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num" style="background:var(--orange);">2</div>
+      <div class="how-title">Auto sync</div>
+      <div class="how-desc">Data syncs to the secure database the moment connectivity is available.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num">3</div>
+      <div class="how-title">Live dashboard</div>
+      <div class="how-desc">M&E officers see updated indicators, milestones, and risk scores in real time.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-num" style="background:var(--orange);">4</div>
+      <div class="how-title">Donor reports</div>
+      <div class="how-desc">Generate Excel and PDF progress reports in one click — ready for donors and leadership.</div>
+    </div>
   </div>
 </section>
 
@@ -265,15 +335,16 @@ footer { border-top: 1px solid var(--border); padding: 32px 48px; display: flex;
   <div class="cta-inner">
     <h2 class="cta-title">Ready to access the DLCI MEAL System?</h2>
     <p class="cta-sub">Access is by invitation only. Contact your system administrator to request an account.</p>
-    <a href="login.html" class="btn btn-primary btn-hero">Sign In to DLCI MEAL</a>
+    <a href="login.html" class="btn-cta">Sign In to DLCI MEAL →</a>
   </div>
 </div>
 
 <footer>
   <div class="footer-brand">
-<img src="dlci-logo.png" alt="DLCI" class="brand-logo-img"><div>
-      <div style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--text-primary);">DLCI MEAL System</div>
-      <div style="font-size:11px;color:var(--text-muted);">Drylands Learning and Capacity Building Initiative</div>
+    <img src="dlci-logo.png" alt="DLCI">
+    <div>
+      <div class="footer-brand-name">DLCI MEAL System</div>
+      <div class="footer-brand-sub">Drylands Learning and Capacity Building Initiative</div>
     </div>
   </div>
   <div class="footer-copy">Built for drylands impact · Powered by Supabase + KoboToolbox</div>
