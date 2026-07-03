@@ -41,7 +41,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "*" }));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "10mb" })); // ✏️ CHANGE 1: increased limit for file uploads
 
 // Rate limit: 100 requests per 15 minutes per IP
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
@@ -95,6 +95,8 @@ app.get("/api/projects", async (req, res) => {
  * POST /api/projects
  * Create a new project (full registration from the HTML form).
  * Body: project object + indicators[] + milestones[] + risks[]
+ * ✏️ CHANGE 2: include reporting_period in project insert
+ * ✏️ CHANGE 3: fix milestone activity_id bug — strip client-side activity_id from milestones
  */
 app.post("/api/projects", async (req, res) => {
   const { indicators = [], milestones = [], risks = [], ...projectData } = req.body;
@@ -108,7 +110,7 @@ app.post("/api/projects", async (req, res) => {
     // 1. Insert project
     const { data: project, error: pErr } = await supabase
       .from("projects")
-      .insert(projectData)
+      .insert(projectData) // reporting_period is now included in projectData from the form
       .select()
       .single();
 
@@ -133,12 +135,18 @@ app.post("/api/projects", async (req, res) => {
     }
 
     // 3. Insert milestones
+    // ✏️ CHANGE 3: strip activity_id from milestones during registration —
+    // the client sends client-side counter IDs (0,1,2) not real DB UUIDs.
+    // Milestones are linked to the project only at registration time.
     if (milestones.length > 0) {
-      const msRows = milestones.map((m, i) => ({
-        ...m,
-        project_id: projectId,
-        sort_order: i,
-      }));
+      const msRows = milestones.map((m, i) => {
+        const { activity_id, ...milestoneData } = m; // strip junk client-side activity_id
+        return {
+          ...milestoneData,
+          project_id: projectId,
+          sort_order: i,
+        };
+      });
       const { data: msData, error: msErr } = await supabase
         .from("milestones")
         .insert(msRows)
@@ -167,6 +175,7 @@ app.post("/api/projects", async (req, res) => {
 /**
  * GET /api/projects/:id
  * Get a single project with all related data.
+ * ✏️ CHANGE 4: include project_documents (project-level attachments) in response
  */
 app.get("/api/projects/:id", async (req, res) => {
   try {
@@ -184,6 +193,18 @@ app.get("/api/projects/:id", async (req, res) => {
 
     if (error) return dbErr(res, error);
     if (!project) return err(res, "Project not found", 404);
+
+    // ✏️ CHANGE 4: fetch project-level documents separately
+    // (attachments where project_id matches and activity_id is null)
+    const { data: projectDocs } = await supabase
+      .from("attachments")
+      .select("*")
+      .eq("project_id", req.params.id)
+      .is("activity_id", null)
+      .order("created_at", { ascending: true });
+
+    project.project_documents = projectDocs || [];
+
     ok(res, project);
   } catch (e) {
     err(res, e.message);
@@ -229,6 +250,116 @@ app.delete("/api/projects/:id", async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PROJECT DOCUMENTS (project-level attachments — logframe, gantt, other)
+// ✏️ CHANGE 5: all new routes for project document management
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/projects/:id/documents
+ * List all project-level documents.
+ */
+app.get("/api/projects/:id/documents", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("attachments")
+      .select("*")
+      .eq("project_id", req.params.id)
+      .is("activity_id", null)
+      .order("created_at", { ascending: true });
+    if (error) return dbErr(res, error);
+    ok(res, data);
+  } catch (e) { err(res, e.message); }
+});
+
+/**
+ * POST /api/projects/:id/documents/upload-url
+ * Generate a Supabase Storage presigned upload URL for the project-documents bucket.
+ * Body: { file_name, file_type, document_type }
+ * Returns: { upload_url, file_path, public_url }
+ */
+app.post("/api/projects/:id/documents/upload-url", async (req, res) => {
+  const { file_name, file_type, document_type = "other" } = req.body;
+  if (!file_name) return err(res, "file_name is required", 422);
+
+  // Build a unique storage path: projects/{project_id}/{document_type}/{timestamp}_{file_name}
+  const timestamp = Date.now();
+  const safeName  = file_name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const filePath  = `projects/${req.params.id}/${document_type}/${timestamp}_${safeName}`;
+
+  try {
+    const { data, error } = await supabase.storage
+      .from("project-documents")
+      .createSignedUploadUrl(filePath);
+
+    if (error) return dbErr(res, error);
+
+    // Build the public URL for later download
+    const { data: urlData } = supabase.storage
+      .from("project-documents")
+      .getPublicUrl(filePath);
+
+    ok(res, {
+      upload_url: data.signedUrl,
+      token:      data.token,
+      file_path:  filePath,
+      public_url: urlData.publicUrl,
+    });
+  } catch (e) { err(res, e.message); }
+});
+
+/**
+ * POST /api/projects/:id/documents
+ * Save document metadata after frontend confirms upload to Storage.
+ * Body: { file_name, file_size, file_type, file_path, public_url, document_type }
+ */
+app.post("/api/projects/:id/documents", async (req, res) => {
+  try {
+    const payload = {
+      ...req.body,
+      project_id:  req.params.id,
+      activity_id: null, // explicitly null — this is a project-level document
+      uploaded_at: new Date().toISOString(),
+    };
+    const { data, error } = await supabase
+      .from("attachments")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) return dbErr(res, error);
+    ok(res, data, 201);
+  } catch (e) { err(res, e.message); }
+});
+
+/**
+ * DELETE /api/project-documents/:id
+ * Delete a project document from Storage and the database.
+ */
+app.delete("/api/project-documents/:id", async (req, res) => {
+  try {
+    const { data: doc, error: fetchError } = await supabase
+      .from("attachments")
+      .select("file_path, project_id")
+      .eq("id", req.params.id)
+      .single();
+    if (fetchError) return dbErr(res, fetchError);
+
+    // Remove from project-documents bucket
+    if (doc.file_path) {
+      await supabase.storage
+        .from("project-documents")
+        .remove([doc.file_path]);
+    }
+
+    const { error } = await supabase
+      .from("attachments")
+      .delete()
+      .eq("id", req.params.id);
+    if (error) return dbErr(res, error);
+    ok(res, { deleted: true });
+  } catch (e) { err(res, e.message); }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ACTIVITIES (INDICATORS) — per-project
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -269,7 +400,7 @@ app.patch("/api/projects/:id/indicators", async (req, res) => {
         .from("indicators")
         .update(fields)
         .eq("id", id)
-        .eq("project_id", req.params.id)   // safety: only update indicators belonging to this project
+        .eq("project_id", req.params.id)
         .select()
         .single();
       if (error) console.error(`[indicator update ${id}]`, error.message);
@@ -322,7 +453,7 @@ app.patch("/api/projects/:id/milestones", async (req, res) => {
         .from("milestones")
         .update(fields)
         .eq("id", id)
-        .eq("project_id", req.params.id)   // safety: only update milestones belonging to this project
+        .eq("project_id", req.params.id)
         .select()
         .single();
       if (error) console.error(`[milestone update ${id}]`, error.message);
@@ -508,7 +639,8 @@ app.delete("/api/media-links/:id", async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ATTACHMENTS
+// ATTACHMENTS (activity-level)
+// ✏️ CHANGE 6: updated delete route to use correct bucket based on attachment type
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.get("/api/activities/:id/attachments", async (req, res) => {
@@ -525,12 +657,24 @@ app.post("/api/attachments", async (req, res) => {
   ok(res, data, 201);
 });
 
+/**
+ * DELETE /api/attachments/:id
+ * ✏️ CHANGE 6: choose correct bucket based on whether attachment is
+ * activity-level (activity-attachments) or project-level (project-documents)
+ */
 app.delete("/api/attachments/:id", async (req, res) => {
   const { data: attachment, error: fetchError } = await supabase
-    .from("attachments").select("file_path").eq("id", req.params.id).single();
+    .from("attachments")
+    .select("file_path, activity_id, project_id")
+    .eq("id", req.params.id)
+    .single();
   if (fetchError) return dbErr(res, fetchError);
 
-  await supabase.storage.from("activity-attachments").remove([attachment.file_path]);
+  // Route to the correct bucket
+  const bucket = attachment.activity_id ? "activity-attachments" : "project-documents";
+  if (attachment.file_path) {
+    await supabase.storage.from(bucket).remove([attachment.file_path]);
+  }
 
   const { error } = await supabase.from("attachments").delete().eq("id", req.params.id);
   if (error) return dbErr(res, error);
@@ -759,13 +903,15 @@ function mapKoboToIndicatorData(submission, fallbackIndicatorId = null, fallback
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SCHEDULED JOBS
+// ✏️ CHANGE 7: fix cron job — use real kobo_asset_uid column instead of
+// aliasing the description column
 // ─────────────────────────────────────────────────────────────────────────────
 
 cron.schedule("0 2 * * *", async () => {
   console.log("[Cron] Daily KoboToolbox sync starting…");
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, code, kobo_asset_uid:description")
+    .select("id, code, kobo_asset_uid") // ✏️ CHANGE 7: real column, no alias hack
     .eq("status", "active");
 
   if (!projects?.length) { console.log("[Cron] No active projects to sync."); return; }
@@ -1001,7 +1147,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", service: "MEAL API", version: "1.0.0", time: new Date().toISOString() });
+  res.json({ status: "ok", service: "MEAL API", version: "1.1.0", time: new Date().toISOString() });
 });
 
 // 404 handler — must come AFTER all routes
