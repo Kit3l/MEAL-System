@@ -647,37 +647,6 @@ app.post("/api/activities/:id/achievements", async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// IMPACTS
-// ─────────────────────────────────────────────────────────────────────────────
-
-app.get("/api/projects/:id/impacts", async (req, res) => {
-  const { data, error } = await supabase
-    .from("impacts").select("*").eq("project_id", req.params.id)
-    .order("created_at", { ascending: true });
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-app.post("/api/impacts", async (req, res) => {
-  const { data, error } = await supabase.from("impacts").insert(req.body).select().single();
-  if (error) return dbErr(res, error);
-  ok(res, data, 201);
-});
-
-app.patch("/api/impacts/:id", async (req, res) => {
-  const { data, error } = await supabase
-    .from("impacts").update(req.body).eq("id", req.params.id).select().single();
-  if (error) return dbErr(res, error);
-  ok(res, data);
-});
-
-app.delete("/api/impacts/:id", async (req, res) => {
-  const { error } = await supabase.from("impacts").delete().eq("id", req.params.id);
-  if (error) return dbErr(res, error);
-  ok(res, { deleted: true });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
 // MEDIA LINKS
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -778,29 +747,6 @@ app.get("/api/projects/:id/budget", async (req, res) => {
         id: a.id, name: a.name,
         budget_allocation: parseFloat(a.budget_allocation) || 0,
       })),
-    });
-  } catch (e) {
-    err(res, e.message);
-  }
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DASHBOARD & ANALYTICS
-// ─────────────────────────────────────────────────────────────────────────────
-
-app.get("/api/dashboard", async (req, res) => {
-  try {
-    const [portfolio, overdue, highRisks] = await Promise.all([
-      supabase.from("v_portfolio_dashboard").select("*"),
-      supabase.from("v_overdue_milestones").select("*").limit(10),
-      supabase.from("risks").select("*, projects(title,code)")
-        .gte("risk_score", 6).eq("is_resolved", false)
-        .order("risk_score", { ascending: false }).limit(10),
-    ]);
-    ok(res, {
-      portfolio:  portfolio.data  || [],
-      overdue:    overdue.data    || [],
-      high_risks: highRisks.data  || [],
     });
   } catch (e) {
     err(res, e.message);

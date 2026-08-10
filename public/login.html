@@ -432,20 +432,22 @@ body {
   <div class="error-box" id="error-box"></div>
   <div class="success-box" id="success-box"></div>
 
+  <form id="login-form" onsubmit="signIn(event)" autocomplete="on">
   <div class="field">
     <label>Email address</label>
-    <input type="email" id="email" placeholder="you@dlci.org" autocomplete="email">
+    <input type="email" id="email" name="email" placeholder="you@dlci.org" autocomplete="username email" required>
   </div>
   <div class="field">
     <label>Password</label>
-    <input type="password" id="password" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter') signIn()">
+    <input type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" required>
   </div>
 
   <a href="#" class="forgot-link" onclick="forgotPassword(); return false;">Forgot password?</a>
 
-  <button class="btn-signin" id="signin-btn" onclick="signIn()">
+  <button class="btn-signin" id="signin-btn" type="submit">
     <span id="signin-label">Sign In to DLCI MEAL</span>
   </button>
+  </form>
 
   <div class="divider">or</div>
 
@@ -491,7 +493,8 @@ function setLoading(loading) {
     : 'Sign In to DLCI MEAL';
 }
 
-async function signIn() {
+async function signIn(event) {
+  if (event) event.preventDefault(); // stop native form submit / page reload
   const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   if (!email)    return showError('Please enter your email address.');

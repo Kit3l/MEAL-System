@@ -1300,7 +1300,12 @@ function showView(name) {
   document.getElementById('view-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const navMap = { dashboard:0, projects:1, entry:2, kobo:3, learning:4, evaluations:5 };
-  document.querySelectorAll('.nav-item')[navMap[name] ?? 0]?.classList.add('active');
+  // Only highlight a nav item when the view maps to one. Views like 'detail'
+  // have no sidebar entry, so nothing should be highlighted (previously this
+  // incorrectly fell back to highlighting Dashboard).
+  if (navMap[name] !== undefined) {
+    document.querySelectorAll('.nav-item')[navMap[name]]?.classList.add('active');
+  }
   const titleMap = { dashboard:'Dashboard', projects:'Projects', entry:'New Project Entry', kobo:'KoboToolbox Sync', detail:'Project Detail', learning:'Learning & Dissemination', evaluations:'Evaluation Plan' };
   document.getElementById('breadcrumb-root').textContent = titleMap[name] || name;
   if (name === 'dashboard')   loadDashboard();
