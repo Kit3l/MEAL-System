@@ -573,11 +573,12 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
           <div class="card-header"><div class="card-icon" style="background:var(--maroon-dim);"><svg viewBox="0 0 24 24" fill="none" stroke="#AD3335" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div><div class="card-title">Project Identification</div><div class="card-subtitle">Basic project details and classification</div></div></div>
           <div class="form-grid form-grid-2">
             <div class="field"><label class="field-label">Project Title <span class="req">*</span></label><input type="text" class="field-input" id="proj-title" placeholder="Full project name as per funding agreement"></div>
-            <div class="field"><label class="field-label">Project Code / ID <span class="req">*</span></label><input type="text" class="field-input" id="proj-code" placeholder="e.g. DLCI-2025-WASH-004"></div>
+            <div class="field"><label class="field-label">Project Short Name / Acronym <span class="req">*</span></label><input type="text" class="field-input" id="proj-shortname" placeholder="e.g. VOICE, THRIVE, SHEGROW" oninput="suggestProjectCode()"></div>
+            <div class="field span-2"><label class="field-label">Project Code / ID <span class="req">*</span> <span id="code-suggest-note" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);font-size:10px;"></span></label><input type="text" class="field-input" id="proj-code" placeholder="Auto-generated — pick a thematic area and enter a short name"></div>
             <div class="field"><label class="field-label">Implementing Organisation <span class="req">*</span></label><input type="text" class="field-input" id="proj-org" placeholder="Lead implementing partner" value="DLCI"></div>
             <div class="field"><label class="field-label">Donor / Funder</label><input type="text" class="field-input" id="proj-donor" placeholder="Primary funding source"></div>
             <div class="field"><label class="field-label">Thematic Area <span class="req">*</span></label>
-              <select class="field-select" id="proj-theme"><option value="">Select thematic area</option><option>Natural Resource Governance</option><option>Climate Change Resilience and Adaptation</option><option>Policy Advocacy</option></select>
+              <select class="field-select" id="proj-theme" onchange="suggestProjectCode()"><option value="">Select thematic area</option><option>Natural Resource Governance</option><option>Climate Change Resilience and Adaptation</option><option>Policy Advocacy</option></select>
             </div>
             <div class="field"><label class="field-label">Project Status</label>
               <select class="field-select" id="proj-status"><option value="planning">Planning</option><option value="active" selected>Active</option><option value="review">Under Review</option><option value="closed">Closed</option></select>
@@ -1812,6 +1813,7 @@ async function submitProject() {
         actC = 0; achC = 0; riskC = 0;
         pendingProjectDocs = { logframe: null, gantt: null, other: null };
         clearDraft(); // remove any saved draft now that the project is submitted
+        _codeManuallyEdited = false; _codeStubCache = { area: null, stub: null }; // reset code auto-suggest
         // Reset doc slot statuses
         ['logframe','gantt','other'].forEach(t => {
           const s = document.getElementById('slot-status-' + t);
@@ -2570,7 +2572,7 @@ function collectDraftState() {
   snapshotActivities(); // pull current DOM values into activities[] state first
   // Step 1 profile fields
   const fieldIds = [
-    'proj-title','proj-code','proj-org','proj-donor','proj-theme','proj-status',
+    'proj-title','proj-shortname','proj-code','proj-org','proj-donor','proj-theme','proj-status',
     'proj-start','proj-end','proj-desc','proj-country','proj-county','proj-sub',
     'proj-ben','proj-ben-f','proj-ben-m','proj-pm','proj-pm-email','proj-meo',
     'proj-meo-email','proj-rperiod','proj-budget'
@@ -2594,6 +2596,64 @@ function collectDraftState() {
     counters: { actC, achC, riskC },
     saved_at: new Date().toISOString(),
   };
+}
+
+// ── PROJECT CODE AUTO-SUGGEST (hybrid: system suggests, user can edit) ──
+// Format: {PREFIX}{NNN}-DLCI-{SHORTNAME}  e.g. PA004-DLCI-VOICE
+let _codeSuggestTimer = null;
+let _codeStubCache = { area: null, stub: null };
+let _codeManuallyEdited = false;
+
+// Mark the code as manually edited so auto-suggest stops overwriting it
+document.addEventListener('DOMContentLoaded', () => {
+  const codeEl = document.getElementById('proj-code');
+  if (codeEl) {
+    codeEl.addEventListener('input', () => { _codeManuallyEdited = true; });
+  }
+});
+
+function buildFullCode(stub, shortName) {
+  const clean = (shortName || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  return clean ? `${stub}-DLCI-${clean}` : stub;
+}
+
+function suggestProjectCode() {
+  const area  = document.getElementById('proj-theme')?.value;
+  const short = document.getElementById('proj-shortname')?.value;
+  const note  = document.getElementById('code-suggest-note');
+  const codeEl = document.getElementById('proj-code');
+
+  // If the user has hand-edited the code, don't overwrite their work
+  if (_codeManuallyEdited) return;
+
+  if (!area) { if (note) note.textContent = ''; return; }
+
+  // If we already have the stub cached for this area, just rebuild locally
+  if (_codeStubCache.area === area && _codeStubCache.stub) {
+    codeEl.value = buildFullCode(_codeStubCache.stub, short);
+    if (note) note.textContent = '· suggested';
+    return;
+  }
+
+  // Debounce the API call
+  if (_codeSuggestTimer) clearTimeout(_codeSuggestTimer);
+  if (note) note.textContent = '· finding next number…';
+  _codeSuggestTimer = setTimeout(async () => {
+    try {
+      const r = await apiGet('/api/projects/next-code?thematic_area=' + encodeURIComponent(area));
+      if (r.success && r.data?.code_stub) {
+        _codeStubCache = { area, stub: r.data.code_stub };
+        if (!_codeManuallyEdited) {
+          codeEl.value = buildFullCode(r.data.code_stub, short);
+          if (note) note.textContent = '· suggested (editable)';
+        }
+      } else {
+        if (note) note.textContent = '';
+      }
+    } catch(e) {
+      if (note) note.textContent = '';
+    }
+  }, 350);
 }
 
 function saveDraft() {

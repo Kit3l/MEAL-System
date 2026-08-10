@@ -92,6 +92,48 @@ app.get("/api/projects", async (req, res) => {
 });
 
 /**
+ * GET /api/projects/next-code?thematic_area=Policy Advocacy
+ * Suggest the next sequential project code for a thematic area.
+ * Format: {PREFIX}{NNN} where prefix is per thematic area.
+ * Returns: { prefix, next_number, code_stub } e.g. { prefix:"PA", next_number:4, code_stub:"PA004" }
+ * The full code (PA004-DLCI-SHORTNAME) is assembled on the frontend.
+ */
+app.get("/api/projects/next-code", async (req, res) => {
+  const THEME_PREFIX = {
+    "Natural Resource Governance": "NRG",
+    "Climate Change Resilience and Adaptation": "CCR",
+    "Policy Advocacy": "PA",
+  };
+  const thematicArea = req.query.thematic_area;
+  const prefix = THEME_PREFIX[thematicArea];
+  if (!prefix) return err(res, "Unknown or missing thematic_area", 422);
+
+  try {
+    // Pull all codes for projects in this thematic area and find the highest
+    // number that matches this prefix. Parsing existing codes (rather than
+    // counting rows) keeps numbering stable even if a project is deleted.
+    const { data, error } = await supabase
+      .from("projects")
+      .select("code")
+      .eq("thematic_area", thematicArea);
+    if (error) return dbErr(res, error);
+
+    let maxNum = 0;
+    const re = new RegExp("^" + prefix + "(\\d+)", "i");
+    (data || []).forEach(row => {
+      const m = (row.code || "").match(re);
+      if (m) { const n = parseInt(m[1], 10); if (n > maxNum) maxNum = n; }
+    });
+
+    const nextNumber = maxNum + 1;
+    const codeStub = prefix + String(nextNumber).padStart(3, "0");
+    ok(res, { prefix, next_number: nextNumber, code_stub: codeStub });
+  } catch (e) {
+    err(res, e.message);
+  }
+});
+
+/**
  * POST /api/projects
  * Create a new project (full registration from the HTML form).
  * Body: project object + indicators[] + milestones[] + risks[]
