@@ -1796,7 +1796,14 @@ async function submitProject() {
         await uploadPendingDocs(newProjectId);
       }
 
-      showToast('✓ Project submitted to DLCI database!', 'ok');
+      // ✏️ ITEM 3: If the project saved but some sections failed, warn clearly
+      // instead of showing a plain success message.
+      if (result.data.partial && Array.isArray(result.data.partial_errors)) {
+        const failed = result.data.partial_errors.map(e => e.section).join(', ');
+        showToast('⚠ Project saved, but these sections failed to save: ' + failed + '. Open the project and re-add them.', 'error');
+      } else {
+        showToast('✓ Project submitted to DLCI database!', 'ok');
+      }
       setTimeout(() => {
         document.querySelectorAll('#view-entry .field-input, #view-entry .field-textarea').forEach(el => el.value = '');
         document.getElementById('proj-org').value = 'DLCI';

@@ -118,6 +118,7 @@ app.post("/api/projects", async (req, res) => {
 
     const projectId = project.id;
     const results   = { project, indicators: [], milestones: [], risks: [] };
+    const partialErrors = []; // ✏️ collect any child-insert failures to report back
 
     // 2. Insert indicators (in bulk)
     if (indicators.length > 0) {
@@ -130,8 +131,12 @@ app.post("/api/projects", async (req, res) => {
         .from("indicators")
         .insert(indRows)
         .select();
-      if (indErr) console.error("[indicators insert]", indErr.message);
-      else results.indicators = indData;
+      if (indErr) {
+        console.error("[indicators insert]", indErr.message);
+        partialErrors.push({ section: "indicators", count: indRows.length, error: indErr.message });
+      } else {
+        results.indicators = indData;
+      }
     }
 
     // 3. Insert milestones
@@ -151,8 +156,12 @@ app.post("/api/projects", async (req, res) => {
         .from("milestones")
         .insert(msRows)
         .select();
-      if (msErr) console.error("[milestones insert]", msErr.message);
-      else results.milestones = msData;
+      if (msErr) {
+        console.error("[milestones insert]", msErr.message);
+        partialErrors.push({ section: "milestones", count: msRows.length, error: msErr.message });
+      } else {
+        results.milestones = msData;
+      }
     }
 
     // 4. Insert risks
@@ -162,8 +171,20 @@ app.post("/api/projects", async (req, res) => {
         .from("risks")
         .insert(riskRows)
         .select();
-      if (riskErr) console.error("[risks insert]", riskErr.message);
-      else results.risks = riskData;
+      if (riskErr) {
+        console.error("[risks insert]", riskErr.message);
+        partialErrors.push({ section: "risks", count: riskRows.length, error: riskErr.message });
+      } else {
+        results.risks = riskData;
+      }
+    }
+
+    // ✏️ ITEM 3: The project itself was created, but one or more child sections
+    // failed to insert. Report this back so the frontend can warn the user
+    // instead of silently claiming full success.
+    if (partialErrors.length > 0) {
+      results.partial = true;
+      results.partial_errors = partialErrors;
     }
 
     ok(res, results, 201);
@@ -934,6 +955,20 @@ cron.schedule("0 8 * * 1", async () => {
     .select("id, project_title, title, days_overdue");
   if (error) { console.error(error.message); return; }
   console.log(`[Cron] ${data?.length || 0} overdue milestone(s) found.`);
+});
+
+// ✏️ ITEM 2: Supabase keep-alive ping.
+// The free tier pauses a project after ~7 days with no activity. This runs a
+// lightweight query every 3 days so the database is never idle long enough to
+// be paused. Harmless if the project is already active for other reasons.
+cron.schedule("0 6 */3 * *", async () => {
+  try {
+    const { error } = await supabase.from("projects").select("id").limit(1);
+    if (error) console.error("[Cron] Keep-alive ping failed:", error.message);
+    else console.log("[Cron] Supabase keep-alive ping OK —", new Date().toISOString());
+  } catch (e) {
+    console.error("[Cron] Keep-alive ping error:", e.message);
+  }
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
