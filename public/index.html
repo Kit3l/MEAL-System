@@ -1157,6 +1157,36 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
   </div>
 </div>
 
+<!-- ══ INACTIVITY LOGOUT MODAL (only shown mid-registration with unsaved data) ══ -->
+<div class="modal-overlay" id="inactivity-modal">
+  <div class="modal">
+    <div class="modal-icon" style="background:var(--yellow-dim);border-color:rgba(255,204,41,0.3);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--yellow-dark)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
+    <div class="modal-title">You've been inactive</div>
+    <div class="modal-sub">For security you're about to be logged out, but you have unsaved project registration data. Save it as a draft before logging out, or stay logged in to continue.</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="inactivityStayLoggedIn()">Stay Logged In</button>
+      <button class="btn btn-primary" onclick="inactivitySaveAndLogout()">Save Draft & Log Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DRAFT RESTORE MODAL ══ -->
+<div class="modal-overlay" id="draft-restore-modal">
+  <div class="modal">
+    <div class="modal-icon" style="background:var(--forest-dim);border-color:var(--forest-glow);">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--forest)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+    </div>
+    <div class="modal-title">Restore unsaved draft?</div>
+    <div class="modal-sub">You have a saved project registration draft from <strong id="draft-restore-time">earlier</strong>. Would you like to restore it and continue where you left off?</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="declineDraftRestore()">Discard</button>
+      <button class="btn btn-primary" onclick="acceptDraftRestore()">Restore Draft</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1174,11 +1204,69 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
   const initials = (user.email || 'DL').substring(0, 2).toUpperCase();
   document.getElementById('user-avatar').textContent = initials;
   document.getElementById('user-avatar').title = `Signed in as ${user.email} — click to sign out`;
+  startInactivityTracking(); // begin 20-min inactivity countdown
 })();
 
 async function signOut() {
   await sb.auth.signOut();
   window.location.href = 'login.html';
+}
+
+// ── INACTIVITY AUTO-LOGOUT (20 minutes) ──
+const INACTIVITY_LIMIT_MS = 20 * 60 * 1000; // 20 minutes
+let inactivityTimer = null;
+let lastActivityReset = 0;
+
+function isOnRegistration() {
+  const v = document.getElementById('view-entry');
+  return v && v.classList.contains('active');
+}
+
+// Detect unsaved registration data: any Step 1 field filled, or any activity/risk present
+function hasUnsavedRegistrationData() {
+  if (!isOnRegistration()) return false;
+  if (activities.length > 0 || risks.length > 0) return true;
+  const checkIds = ['proj-title','proj-code','proj-donor','proj-desc','proj-county','proj-sub','proj-pm','proj-meo','proj-budget'];
+  return checkIds.some(id => (document.getElementById(id)?.value || '').trim() !== '');
+}
+
+async function handleInactivityTimeout() {
+  if (hasUnsavedRegistrationData()) {
+    // Warn before logging out so unsaved work can be saved as a draft
+    document.getElementById('inactivity-modal').classList.add('show');
+    return;
+  }
+  await signOut();
+}
+
+function resetInactivityTimer() {
+  // Throttle: only actually reset at most once every 5 seconds
+  const now = Date.now();
+  if (now - lastActivityReset < 5000) return;
+  lastActivityReset = now;
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(handleInactivityTimeout, INACTIVITY_LIMIT_MS);
+}
+
+function startInactivityTracking() {
+  ['mousemove','keydown','click','scroll','touchstart'].forEach(evt =>
+    document.addEventListener(evt, resetInactivityTimer, { passive: true })
+  );
+  // Kick off the first timer immediately
+  lastActivityReset = 0;
+  resetInactivityTimer();
+}
+
+// Modal button handlers
+async function inactivitySaveAndLogout() {
+  saveDraft();
+  document.getElementById('inactivity-modal').classList.remove('show');
+  await signOut();
+}
+function inactivityStayLoggedIn() {
+  document.getElementById('inactivity-modal').classList.remove('show');
+  lastActivityReset = 0;
+  resetInactivityTimer();
 }
 
 async function apiGet(path) {
@@ -1219,6 +1307,7 @@ function showView(name) {
   if (name === 'kobo')        loadKoboProjects();
   if (name === 'learning')    initLearningView();
   if (name === 'evaluations') initEvaluationsView();
+  if (name === 'entry')       setTimeout(maybeOfferDraftRestore, 150);
 }
 
 // ✏️ CHANGE 2: Updated to 6 steps
@@ -1500,12 +1589,13 @@ function removeRisk(id) { risks = risks.filter(r => r.id !== id); renderRisks();
 function renderRisks() {
   const el = document.getElementById('risk-list');
   if (!risks.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No risks yet.</div>'; return; }
+  const sel = (v, opt) => (v === opt ? ' selected' : '');
   el.innerHTML = risks.map(r => `
     <div class="risk-row-input">
-      <input class="risk-input" id="risk-desc-${r.id}" type="text" placeholder="Describe the risk…">
-      <select class="risk-select" id="risk-lkh-${r.id}"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="critical">Critical</option></select>
-      <select class="risk-select" id="risk-imp-${r.id}"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="critical">Critical</option></select>
-      <input class="risk-input" id="risk-mit-${r.id}" type="text" placeholder="Mitigation strategy…">
+      <input class="risk-input" id="risk-desc-${r.id}" type="text" placeholder="Describe the risk…" value="${(r._desc||'').replace(/"/g,'&quot;')}">
+      <select class="risk-select" id="risk-lkh-${r.id}"><option value="low"${sel(r._lkh,'low')}>Low</option><option value="medium"${sel(r._lkh||'medium','medium')}>Medium</option><option value="high"${sel(r._lkh,'high')}>High</option><option value="critical"${sel(r._lkh,'critical')}>Critical</option></select>
+      <select class="risk-select" id="risk-imp-${r.id}"><option value="low"${sel(r._imp,'low')}>Low</option><option value="medium"${sel(r._imp||'medium','medium')}>Medium</option><option value="high"${sel(r._imp,'high')}>High</option><option value="critical"${sel(r._imp,'critical')}>Critical</option></select>
+      <input class="risk-input" id="risk-mit-${r.id}" type="text" placeholder="Mitigation strategy…" value="${(r._mit||'').replace(/"/g,'&quot;')}">
       <button class="btn btn-danger" style="padding:5px 8px;font-size:13px;" onclick="removeRisk(${r.id})">✕</button>
     </div>`).join('');
 }
@@ -1714,6 +1804,7 @@ async function submitProject() {
         activities = []; risks = [];
         actC = 0; achC = 0; riskC = 0;
         pendingProjectDocs = { logframe: null, gantt: null, other: null };
+        clearDraft(); // remove any saved draft now that the project is submitted
         // Reset doc slot statuses
         ['logframe','gantt','other'].forEach(t => {
           const s = document.getElementById('slot-status-' + t);
@@ -2465,9 +2556,98 @@ function addSyncLog(msg, type='info') {
   log.scrollTop = log.scrollHeight;
 }
 
+// ── DRAFT SAVE / RESTORE (full form state) ──
+const DRAFT_KEY = 'dlci_draft';
+
+function collectDraftState() {
+  snapshotActivities(); // pull current DOM values into activities[] state first
+  // Step 1 profile fields
+  const fieldIds = [
+    'proj-title','proj-code','proj-org','proj-donor','proj-theme','proj-status',
+    'proj-start','proj-end','proj-desc','proj-country','proj-county','proj-sub',
+    'proj-ben','proj-ben-f','proj-ben-m','proj-pm','proj-pm-email','proj-meo',
+    'proj-meo-email','proj-rperiod','proj-budget'
+  ];
+  const fields = {};
+  fieldIds.forEach(id => { fields[id] = document.getElementById(id)?.value ?? ''; });
+
+  // Risks — read current DOM values by id
+  const risksState = risks.map(r => ({
+    id:   r.id,
+    desc: document.getElementById('risk-desc-' + r.id)?.value ?? r._desc ?? '',
+    lkh:  document.getElementById('risk-lkh-'  + r.id)?.value ?? r._lkh  ?? 'medium',
+    imp:  document.getElementById('risk-imp-'  + r.id)?.value ?? r._imp  ?? 'medium',
+    mit:  document.getElementById('risk-mit-'  + r.id)?.value ?? r._mit  ?? '',
+  }));
+
+  return {
+    fields,
+    activities,            // already holds _-prefixed values after snapshot
+    risks: risksState,
+    counters: { actC, achC, riskC },
+    saved_at: new Date().toISOString(),
+  };
+}
+
 function saveDraft() {
-  localStorage.setItem('dlci_draft', JSON.stringify({ proj_title: document.getElementById('proj-title')?.value, saved_at: new Date().toISOString() }));
-  showToast('Draft saved at ' + new Date().toLocaleTimeString());
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(collectDraftState()));
+    showToast('✓ Draft saved at ' + new Date().toLocaleTimeString(), 'ok');
+  } catch(e) {
+    showToast('Could not save draft: ' + e.message, 'error');
+  }
+}
+
+function hasSavedDraft() {
+  return !!localStorage.getItem(DRAFT_KEY);
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+}
+
+function restoreDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) return false;
+  let draft;
+  try { draft = JSON.parse(raw); } catch { return false; }
+
+  // Restore Step 1 fields
+  Object.entries(draft.fields || {}).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+
+  // Restore activities[] and risks[] state + counters
+  activities = Array.isArray(draft.activities) ? draft.activities : [];
+  risks      = Array.isArray(draft.risks) ? draft.risks.map(r => ({
+    id: r.id, _desc: r.desc, _lkh: r.lkh, _imp: r.imp, _mit: r.mit
+  })) : [];
+  if (draft.counters) { actC = draft.counters.actC||0; achC = draft.counters.achC||0; riskC = draft.counters.riskC||0; }
+
+  renderActivities();
+  renderRisks();
+  updateBudgetBar();
+  return true;
+}
+
+// On entering the registration view, offer to restore a saved draft
+function maybeOfferDraftRestore() {
+  if (!hasSavedDraft()) return;
+  let draft;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch { return; }
+  const when = draft?.saved_at ? new Date(draft.saved_at).toLocaleString() : 'earlier';
+  document.getElementById('draft-restore-time').textContent = when;
+  document.getElementById('draft-restore-modal').classList.add('show');
+}
+function acceptDraftRestore() {
+  restoreDraft();
+  document.getElementById('draft-restore-modal').classList.remove('show');
+  showToast('✓ Draft restored.', 'ok');
+}
+function declineDraftRestore() {
+  clearDraft();
+  document.getElementById('draft-restore-modal').classList.remove('show');
 }
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
