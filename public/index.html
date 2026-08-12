@@ -450,7 +450,11 @@ body { font-family: var(--font-body); background: var(--bg); color: var(--text-p
     <div class="topbar-right">
       <div class="api-indicator"><div class="api-dot" id="api-dot"></div><span id="api-status-text">Connecting…</span></div>
       <button class="btn btn-ghost btn-sm" onclick="saveDraft()">Save Draft</button>
-      <div class="avatar" id="user-avatar" title="Sign out — click to log out" onclick="signOut()">DL</div>
+      <div class="avatar" id="user-avatar" title="Your account" onclick="signOut()">DL</div>
+      <button class="btn btn-ghost btn-sm" onclick="signOut()" title="Log out of the DLCI MEAL system" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log out
+      </button>
     </div>
   </div>
 
@@ -1213,8 +1217,8 @@ async function signOut() {
   window.location.href = 'login.html';
 }
 
-// ── INACTIVITY AUTO-LOGOUT (20 minutes) ──
-const INACTIVITY_LIMIT_MS = 20 * 60 * 1000; // 20 minutes
+// ── INACTIVITY AUTO-LOGOUT (5 minutes) ──
+const INACTIVITY_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
 let inactivityTimer = null;
 let lastActivityReset = 0;
 
