@@ -57,7 +57,7 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 //   ENFORCE_AUTH = true   → rejects requests without a valid token (401).
 //
 // Flip ENFORCE_AUTH to true only after the logs confirm tokens arrive correctly.
-const ENFORCE_AUTH = false;
+const ENFORCE_AUTH = true;
 
 // Paths that never require a user token:
 //   /health           — uptime checks
