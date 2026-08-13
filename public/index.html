@@ -1727,6 +1727,26 @@ function populateReview() {
 }
 
 // ✏️ CHANGE 2 + CHANGE 3: submitProject now includes reporting_period and uploads pending docs
+// ── Map human-readable frequency labels to the DB enum (frequency_type) ──
+// DB enum accepts: monthly, quarterly, semi_annual, annual, ad_hoc
+function toFrequencyEnum(val) {
+  if (!val) return null;
+  const map = {
+    'monthly': 'monthly',
+    'quarterly': 'quarterly',
+    'semi-annual': 'semi_annual',
+    'semi annual': 'semi_annual',
+    'semiannual': 'semi_annual',
+    'annual': 'annual',
+    'annually': 'annual',
+    'ad-hoc': 'ad_hoc',
+    'ad hoc': 'ad_hoc',
+    'adhoc': 'ad_hoc',
+  };
+  const key = String(val).trim().toLowerCase();
+  return map[key] || null; // null if unmatched, so a bad value never breaks the insert
+}
+
 async function submitProject() {
   snapshotActivities();
   if (!document.getElementById('declaration-check').checked) return showToast('Please tick the declaration checkbox.', 'error');
@@ -1768,7 +1788,7 @@ async function submitProject() {
       impact:              act._impact,
       collection_responsible: act._resp,
       analysis_method:     act._analysis,
-      review_frequency:    act._review  || 'Quarterly',
+      review_frequency:    toFrequencyEnum(act._review) || 'quarterly',
     })),
     milestones: activities.flatMap(act =>
       act.achievements.map(ach => ({
@@ -2862,10 +2882,11 @@ function renderPMP(indicators) {
         </div>
         <div class="field"><label class="field-label">Review Frequency</label>
           <select class="field-select" id="pmp-review-${ind.id}" style="font-size:12px;padding:7px 10px;" onchange="savePMPField('${ind.id}')">
-            <option ${(ind.review_frequency||'Quarterly')==='Monthly'?'selected':''}>Monthly</option>
-            <option ${(ind.review_frequency||'Quarterly')==='Quarterly'?'selected':''}>Quarterly</option>
-            <option ${ind.review_frequency==='Semi-annual'?'selected':''}>Semi-annual</option>
-            <option ${ind.review_frequency==='Annual'?'selected':''}>Annual</option>
+            <option value="monthly" ${ind.review_frequency==='monthly'?'selected':''}>Monthly</option>
+            <option value="quarterly" ${(ind.review_frequency||'quarterly')==='quarterly'?'selected':''}>Quarterly</option>
+            <option value="semi_annual" ${ind.review_frequency==='semi_annual'?'selected':''}>Semi-annual</option>
+            <option value="annual" ${ind.review_frequency==='annual'?'selected':''}>Annual</option>
+            <option value="ad_hoc" ${ind.review_frequency==='ad_hoc'?'selected':''}>Ad-hoc</option>
           </select>
         </div>
       </div>
@@ -2883,7 +2904,7 @@ async function savePMPField(indId) {
     collection_responsible: document.getElementById('pmp-resp-'    + indId)?.value,
     analysis_method:        document.getElementById('pmp-analysis-'+ indId)?.value,
     data_source:            document.getElementById('pmp-src-'     + indId)?.value,
-    review_frequency:       document.getElementById('pmp-review-'  + indId)?.value,
+    review_frequency:       toFrequencyEnum(document.getElementById('pmp-review-'  + indId)?.value),
   };
   try {
     await apiPatch('/api/indicators/' + indId, payload);
