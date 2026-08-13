@@ -46,6 +46,70 @@ app.use(express.json({ limit: "10mb" })); // ✏️ CHANGE 1: increased limit fo
 // Rate limit: 100 requests per 15 minutes per IP
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 
+// ─── Authentication middleware ────────────────────────────────────────────────
+// Verifies that each /api request carries a valid Supabase user token (JWT).
+//
+// ROLLOUT MODE:
+//   ENFORCE_AUTH = false  → "log but allow": logs whether a valid token was
+//                           present, but lets every request through. Use this
+//                           first to confirm the frontend is sending tokens
+//                           without any risk of breaking the app.
+//   ENFORCE_AUTH = true   → rejects requests without a valid token (401).
+//
+// Flip ENFORCE_AUTH to true only after the logs confirm tokens arrive correctly.
+const ENFORCE_AUTH = false;
+
+// Paths that never require a user token:
+//   /health           — uptime checks
+//   /api/kobo/webhook — protected by its own API_SECRET
+// Static files (index.html, login.html, assets) are served later and are not /api routes.
+function isExemptPath(req) {
+  if (req.path === "/health") return true;
+  if (req.path === "/api/kobo/webhook") return true;
+  if (!req.path.startsWith("/api/")) return true; // static assets, root, etc.
+  return false;
+}
+
+async function authMiddleware(req, res, next) {
+  if (isExemptPath(req)) return next();
+
+  const authHeader = req.headers["authorization"] || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+
+  if (!token) {
+    if (ENFORCE_AUTH) {
+      return err(res, "Authentication required", 401);
+    }
+    console.warn(`[Auth] ⚠ No token on ${req.method} ${req.path} — WOULD BLOCK (log-but-allow mode)`);
+    return next();
+  }
+
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data?.user) {
+      if (ENFORCE_AUTH) {
+        return err(res, "Invalid or expired session", 401);
+      }
+      console.warn(`[Auth] ⚠ Invalid token on ${req.method} ${req.path} — WOULD BLOCK (log-but-allow mode)`);
+      return next();
+    }
+    // Valid token — attach the user for potential downstream use
+    req.user = data.user;
+    if (!ENFORCE_AUTH) {
+      console.log(`[Auth] ✓ ${data.user.email} — ${req.method} ${req.path}`);
+    }
+    return next();
+  } catch (e) {
+    if (ENFORCE_AUTH) {
+      return err(res, "Auth check failed", 401);
+    }
+    console.warn(`[Auth] ⚠ Auth check errored on ${req.method} ${req.path}: ${e.message} — WOULD BLOCK (log-but-allow mode)`);
+    return next();
+  }
+}
+
+app.use(authMiddleware);
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Standard JSON response */

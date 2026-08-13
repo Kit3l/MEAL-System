@@ -1274,16 +1274,35 @@ function inactivityStayLoggedIn() {
   resetInactivityTimer();
 }
 
+// ── Attach the logged-in user's Supabase token to every API request ──
+async function authHeaders(base = {}) {
+  const headers = { ...base };
+  try {
+    const { data } = await sb.auth.getSession();
+    const token = data?.session?.access_token;
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+  } catch (e) { /* no session — request proceeds without token */ }
+  return headers;
+}
+
 async function apiGet(path) {
-  const r = await fetch(API_BASE + path);
+  const headers = await authHeaders();
+  const r = await fetch(API_BASE + path, { headers });
   return r.json();
 }
 async function apiPost(path, body) {
-  const r = await fetch(API_BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const headers = await authHeaders({ 'Content-Type': 'application/json' });
+  const r = await fetch(API_BASE + path, { method: 'POST', headers, body: JSON.stringify(body) });
   return r.json();
 }
 async function apiPatch(path, body) {
-  const r = await fetch(API_BASE + path, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const headers = await authHeaders({ 'Content-Type': 'application/json' });
+  const r = await fetch(API_BASE + path, { method: 'PATCH', headers, body: JSON.stringify(body) });
+  return r.json();
+}
+async function apiDelete(path) {
+  const headers = await authHeaders();
+  const r = await fetch(API_BASE + path, { method: 'DELETE', headers });
   return r.json();
 }
 
@@ -2016,8 +2035,7 @@ function renderDetailDocuments(docs) {
 
 async function deleteProjectDocument(docId) {
   try {
-    const r = await fetch(API_BASE + '/api/project-documents/' + docId, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/project-documents/' + docId);
     if (!data.success) throw new Error(data.error);
     showToast('Document removed.', 'ok');
     await viewProject(currentProjectId);
@@ -2227,8 +2245,7 @@ async function uploadEpAttachment() {
 
 async function deleteEpAttachment(attachId, activityId) {
   try {
-    const r = await fetch(API_BASE + '/api/attachments/' + attachId, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/attachments/' + attachId);
     if (!data.success) throw new Error(data.error);
     showToast('Attachment removed.', 'ok');
     loadEpAttachments(activityId);
@@ -2268,8 +2285,7 @@ async function addEpMediaLink() {
 
 async function deleteEpMediaLink(linkId, activityId) {
   try {
-    const r = await fetch(API_BASE + '/api/media-links/' + linkId, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/media-links/' + linkId);
     if (!data.success) throw new Error(data.error);
     showToast('Link removed.', 'ok');
     loadEpMediaLinks(activityId);
@@ -2320,8 +2336,7 @@ async function uploadEpProjectDoc() {
 
 async function deleteEpProjectDoc(docId) {
   try {
-    const r = await fetch(API_BASE + '/api/project-documents/' + docId, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/project-documents/' + docId);
     if (!data.success) throw new Error(data.error);
     showToast('Document removed.', 'ok');
     loadEpProjectDocs();
@@ -2858,8 +2873,7 @@ async function saveLogframeRow(rowId) {
 
 async function deleteLogframeRow(rowId) {
   try {
-    const r = await fetch(API_BASE + '/api/logframe/' + rowId, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/logframe/' + rowId);
     if (!data.success) throw new Error(data.error);
     logframeRows = logframeRows.filter(r => String(r.id) !== String(rowId));
     renderLogframe();
@@ -3025,8 +3039,7 @@ async function saveLearningEntry() {
 
 async function deleteLearningEntry(id) {
   try {
-    const r = await fetch(API_BASE + '/api/learning/' + id, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/learning/' + id);
     if (!data.success) throw new Error(data.error);
     showToast('Entry deleted.', 'ok');
     loadLearningEntries();
@@ -3102,8 +3115,7 @@ async function saveDisseminationPlan() {
 
 async function deleteDissemPlan(id) {
   try {
-    const r = await fetch(API_BASE + '/api/dissemination/' + id, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/dissemination/' + id);
     if (!data.success) throw new Error(data.error);
     showToast('Plan deleted.', 'ok');
     loadDisseminationPlans();
@@ -3188,8 +3200,7 @@ async function saveEvaluation() {
 
 async function deleteEvaluation(id) {
   try {
-    const r = await fetch(API_BASE + '/api/evaluations/' + id, { method: 'DELETE' });
-    const data = await r.json();
+    const data = await apiDelete('/api/evaluations/' + id);
     if (!data.success) throw new Error(data.error);
     showToast('Evaluation deleted.', 'ok');
     loadEvaluations();
