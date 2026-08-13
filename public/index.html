@@ -1747,6 +1747,13 @@ function toFrequencyEnum(val) {
   return map[key] || null; // null if unmatched, so a bad value never breaks the insert
 }
 
+// Convert enum value back to a friendly label for display/export
+function fromFrequencyEnum(val) {
+  if (!val) return '—';
+  const map = { monthly:'Monthly', quarterly:'Quarterly', semi_annual:'Semi-annual', annual:'Annual', ad_hoc:'Ad-hoc' };
+  return map[String(val).toLowerCase()] || val;
+}
+
 async function submitProject() {
   snapshotActivities();
   if (!document.getElementById('declaration-check').checked) return showToast('Please tick the declaration checkbox.', 'error');
@@ -1774,7 +1781,7 @@ async function submitProject() {
     me_officer:       document.getElementById('proj-meo')?.value,
     me_officer_email: document.getElementById('proj-meo-email')?.value,
     budget_usd:       parseFloat(document.getElementById('proj-budget')?.value) || null,
-    reporting_period: document.getElementById('proj-rperiod')?.value, // ✏️ CHANGE 2: now included
+    reporting_period: toFrequencyEnum(document.getElementById('proj-rperiod')?.value), // mapped to frequency_type enum
     indicators: activities.map(act => ({
       name:                act._name,
       result_level:        act._level    || 'output',
@@ -1789,6 +1796,7 @@ async function submitProject() {
       collection_responsible: act._resp,
       analysis_method:     act._analysis,
       review_frequency:    toFrequencyEnum(act._review) || 'quarterly',
+      collection_frequency: toFrequencyEnum(act._freq) || 'semi_annual',
     })),
     milestones: activities.flatMap(act =>
       act.achievements.map(ach => ({
@@ -2455,7 +2463,7 @@ function exportExcel() {
   if (!currentProjectData) return showToast('No project data loaded.', 'error');
   const p = currentProjectData;
   const wb = XLSX.utils.book_new();
-  const summary = [['DLCI MEAL System — Project Progress Report'],['Generated:',new Date().toLocaleDateString()],[],['FIELD','VALUE'],['Project Title',p.title],['Project Code',p.code],['Status',p.status],['Organisation',p.organisation],['Donor',p.donor||'—'],['Country',p.country],['Region',p.county_region||'—'],['Start Date',p.start_date],['End Date',p.end_date],['Reporting Period',p.reporting_period||'—'],['Total Beneficiaries',p.beneficiaries_total||0],['Female Beneficiaries',p.beneficiaries_female||0],['Male Beneficiaries',p.beneficiaries_male||0],['Budget (USD)',p.budget_usd||'—'],['Project Manager',p.project_manager||'—'],['M&E Officer',p.me_officer||'—']];
+  const summary = [['DLCI MEAL System — Project Progress Report'],['Generated:',new Date().toLocaleDateString()],[],['FIELD','VALUE'],['Project Title',p.title],['Project Code',p.code],['Status',p.status],['Organisation',p.organisation],['Donor',p.donor||'—'],['Country',p.country],['Region',p.county_region||'—'],['Start Date',p.start_date],['End Date',p.end_date],['Reporting Period',fromFrequencyEnum(p.reporting_period)],['Total Beneficiaries',p.beneficiaries_total||0],['Female Beneficiaries',p.beneficiaries_female||0],['Male Beneficiaries',p.beneficiaries_male||0],['Budget (USD)',p.budget_usd||'—'],['Project Manager',p.project_manager||'—'],['M&E Officer',p.me_officer||'—']];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), 'Summary');
   const inds = (p.indicators||[]).map(i=>({ Indicator:i.name, Level:i.result_level, Unit:i.unit_of_measurement, Baseline:i.baseline_value, Target:i.overall_target, Actual:i.overall_actual, 'Achievement (%)':i.achievement_rate?Math.round(i.achievement_rate):null, Status:!i.achievement_rate?'No Data':i.achievement_rate>=80?'On Track':i.achievement_rate>=50?'At Risk':'Off Track', 'Data Source':i.data_source }));
   if (inds.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(inds), 'Activities');
