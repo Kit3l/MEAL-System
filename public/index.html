@@ -2424,6 +2424,8 @@ async function saveEditPanel() {
         overall_target:      parseFloat(document.getElementById('ep-act-tgt')?.value)    || null,
         overall_actual:      parseFloat(document.getElementById('ep-act-actual')?.value) || null,
         impact:              document.getElementById('ep-act-impact')?.value,
+        collection_frequency: 'semi_annual', // enum default — form has no frequency picker
+        review_frequency:     'quarterly',   // enum default
       };
       const r = await apiPost('/api/projects/' + currentProjectId + '/indicators', newAct);
       if (!r.success) throw new Error(r.error || 'Failed to add activity');
